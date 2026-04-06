@@ -1,0 +1,33 @@
+name: 🤖 AI Code Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronized]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔎 Gemini Code Review
+        uses: google-gemini/gemini-review-action@v1
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          model: 'gemini-1.5-flash'
+
+          system_instruction: |
+            You are a Senior Frontend Architect at Volkswagen Digital:HUB. 
+            Review this Pull Request focusing on:
+            1. Clean Architecture & SOLID principles.
+            2. React 19 and TypeScript best practices.
+            3. Potential bugs or performance issues.
+            4. Suggest improvements in a professional, constructive, and concise tone.
+            If the code looks perfect, give a brief 'LGTM' (Looks Good To Me) and highlight what you liked.
