@@ -15,7 +15,7 @@ As part of the **AI-First Engineering** approach, this project's infrastructure 
 1. **Tools Used:** Cursor (Pro), Gemini 3 Flash, and Claude 3.5 Sonnet.
 2. **Workflow:** I utilized **Cursor's Agentic Mode** for boilerplate generation and multi-file infrastructure setup. I directed the AI to solve complex environment conflicts through iterative prompting and context-sharing.
 3. **Quality Assurance:** AI-generated configurations (like ESLint Flat Config) were manually reviewed and refactored to align with the latest industry standards. I rejected experimental AI suggestions (e.g., Node v24) in favor of LTS stability.
-4. **Automated AI Code Review:** Integrated **Google Gemini** (`gemini-1.5-flash`) as an automated code reviewer directly into the CI/CD pipeline via GitHub Actions. On every pull request, Gemini reviews the diff with a focus on Clean Architecture, SOLID principles, React 19 / TypeScript best practices, and potential performance issues. This creates a continuous, AI-powered feedback loop that complements human review. **Location:** `.github/workflows/ai-code-review.yml`
+4. **Automated AI Code Review:** Integrated **Google Gemini** (`gemini-2.5-flash`) as an automated code reviewer directly into the CI/CD pipeline via GitHub Actions. On every pull request, Gemini reviews the diff with a focus on Clean Architecture, SOLID principles, React 19 / TypeScript best practices, and potential performance issues. This creates a continuous, AI-powered feedback loop that complements human review. **Location:** `.github/workflows/ai-code-review.yml`
 5. **Ownership:** I defined the **Architectural Vision** and **Infrastructure Strategy**. The AI acted as a high-speed pair programmer to implement the boilerplate and configuration files based on my technical constraints.
 
 ---
@@ -44,7 +44,7 @@ A professional **GitHub Actions** pipeline acts as a quality gate for every cont
 - **Dependency Verification:** Uses `pnpm` for deterministic builds.
 - **Linting:** Enforces strict code style via **ESLint 9 (Flat Config)** and **Prettier**.
 - **Automated Testing:** Runs **Vitest** (Unit + Environment validation) on every push to `main` or `feat/*` branches.
-- **AI Code Review:** Every pull request is automatically reviewed by **Google Gemini** (`gemini-1.5-flash`), configured to flag architectural and performance concerns.
+- **AI Code Review:** Every pull request is automatically reviewed by **Google Gemini** (`gemini-2.5-flash`), configured to flag architectural and performance concerns.
 - **Location:** `.github/workflows/ci.yml` | `.github/workflows/ai-code-review.yml`
 
 ---
