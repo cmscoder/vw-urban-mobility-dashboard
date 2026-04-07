@@ -3,7 +3,7 @@ import type {
   EurostatResponse,
   EurostatQueryParams,
   VehicleRecord,
-} from '../types';
+} from '@/types';
 
 const DATASET = '/data/road_eqs_carmot';
 
