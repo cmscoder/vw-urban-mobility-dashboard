@@ -78,9 +78,6 @@ importers:
       jsdom:
         specifier: ^26.0.0
         version: 26.1.0
-      jsonstat-toolkit:
-        specifier: ^2.2.2
-        version: 2.2.2
       lint-staged:
         specifier: ^16.4.0
         version: 16.4.0
@@ -1485,9 +1482,6 @@ packages:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
     hasBin: true
-
-  jsonstat-toolkit@2.2.2:
-    resolution: {integrity: sha512-k6sUyWkMk/IBkrv1mqNRXWNkjsFV9cwY4G43FMXlUUuO+41s+bykOBq2OXQ16ZJj3m4zrMXWakpScdH5/RUVVA==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -3631,8 +3625,6 @@ snapshots:
   json-stable-stringify-without-jsonify@1.0.1: {}
 
   json5@2.2.3: {}
-
-  jsonstat-toolkit@2.2.2: {}
 
   keyv@4.5.4:
     dependencies:
