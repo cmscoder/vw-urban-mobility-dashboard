@@ -37,7 +37,6 @@
     "globals": "^15.15.0",
     "husky": "^9.1.7",
     "jsdom": "^26.0.0",
-    "jsonstat-toolkit": "^2.2.2",
     "lint-staged": "^16.4.0",
     "msw": "^2.7.0",
     "postcss": "8.4.49",
