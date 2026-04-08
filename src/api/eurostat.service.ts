@@ -5,44 +5,54 @@ import type {
   VehicleRecord,
 } from '@/types';
 
-const DATASET = '/data/road_eqs_carmot';
+const DATASET = '/data/road_eqs_carpda';
+
+const MOT_NRG_FILTER = [
+  'mot_nrg=ELC',
+  'mot_nrg=ELC_PET_HYB',
+  'mot_nrg=ELC_DIE_HYB',
+  'mot_nrg=ELC_PET_PI',
+  'mot_nrg=ELC_DIE_PI',
+  'mot_nrg=HYD_FCELL',
+].join('&');
 
 const DEFAULT_PARAMS: EurostatQueryParams = {
   format: 'JSON',
   lang: 'EN',
   unit: 'NR',
-  engine: 'TOTAL',
+  geoLevel: 'country',
+  sinceTimePeriod: '2018',
 };
 
 export async function fetchVehicleData(
   params?: EurostatQueryParams
 ): Promise<VehicleRecord[]> {
-  const { data } = await httpClient.get<EurostatResponse>(DATASET, {
-    params: { ...DEFAULT_PARAMS, ...params },
-  });
+  const { data } = await httpClient.get<EurostatResponse>(
+    `${DATASET}?${MOT_NRG_FILTER}`,
+    { params: { ...DEFAULT_PARAMS, ...params } }
+  );
 
   return transformResponse(data);
 }
 
 /**
- * Computes a flat index from multi-dimensional positions.
- * JSON-stat stores values in a sparse flat object keyed by this index.
- *
- * For dimensions with sizes [2, 3, 4] and indices [1, 2, 0]:
- * flatIndex = 1*(3*4) + 2*(4) + 0 = 20
+ * Reverses a category index map (code → position) to (position → code).
  */
-function computeFlatIndex(indices: number[], sizes: number[]): number {
-  let index = 0;
-  let multiplier = 1;
-  for (let i = indices.length - 1; i >= 0; i--) {
-    index += indices[i] * multiplier;
-    multiplier *= sizes[i];
-  }
-  return index;
+function reverseIndex(index: Record<string, number>): Record<number, string> {
+  return Object.fromEntries(
+    Object.entries(index).map(([code, pos]) => [pos, code])
+  );
 }
 
+/**
+ * Transforms a JSON-stat 2.0 response into flat VehicleRecord[].
+ *
+ * Instead of iterating every possible dimension combination (3 nested loops),
+ * we iterate directly over the value entries — only data that actually exists.
+ * Each flat index is decoded back to its dimensional positions using strides.
+ */
 export function transformResponse(data: EurostatResponse): VehicleRecord[] {
-  const { dimension, id: dimensionIds, size: dimensionSizes, value } = data;
+  const { dimension, id: dimIds, size: dimSizes, value } = data;
 
   const geoDim = dimension['geo'];
   const timeDim = dimension['time'];
@@ -50,40 +60,39 @@ export function transformResponse(data: EurostatResponse): VehicleRecord[] {
 
   if (!geoDim || !timeDim || !motNrgDim) return [];
 
-  const geoCodes = Object.keys(geoDim.category.index);
-  const timeCodes = Object.keys(timeDim.category.index);
-  const motNrgCodes = Object.keys(motNrgDim.category.index);
+  const geoByPos = reverseIndex(geoDim.category.index);
+  const timeByPos = reverseIndex(timeDim.category.index);
+  const motNrgByPos = reverseIndex(motNrgDim.category.index);
 
-  const records: VehicleRecord[] = [];
+  const geoIdx = dimIds.indexOf('geo');
+  const timeIdx = dimIds.indexOf('time');
+  const motNrgIdx = dimIds.indexOf('mot_nrg');
 
-  for (const geo of geoCodes) {
-    for (const time of timeCodes) {
-      for (const motNrg of motNrgCodes) {
-        const indices = dimensionIds.map((dimId) => {
-          if (dimId === 'geo') return geoDim.category.index[geo];
-          if (dimId === 'time') return timeDim.category.index[time];
-          if (dimId === 'mot_nrg') return motNrgDim.category.index[motNrg];
-          return 0;
-        });
+  const strides = dimIds.map((_, i) =>
+    dimSizes.slice(i + 1).reduce((a, b) => a * b, 1)
+  );
 
-        const flatIndex = computeFlatIndex(indices, dimensionSizes);
-        const count = value[String(flatIndex)] ?? null;
+  return Object.entries(value).map(([flatKey, count]) => {
+    let remaining = Number(flatKey);
+    const positions = strides.map((stride) => {
+      const pos = Math.floor(remaining / stride);
+      remaining = remaining % stride;
+      return pos;
+    });
 
-        if (count === null) continue;
+    const geo = geoByPos[positions[geoIdx]];
+    const time = timeByPos[positions[timeIdx]];
+    const motNrg = motNrgByPos[positions[motNrgIdx]];
 
-        records.push({
-          id: `${geo}-${motNrg}-${time}`,
-          country: geo,
-          countryName: geoDim.category.label[geo] ?? geo,
-          year: time,
-          motorEnergy: motNrg,
-          motorEnergyName: motNrgDim.category.label[motNrg] ?? motNrg,
-          count,
-          source: 'eurostat',
-        });
-      }
-    }
-  }
-
-  return records;
+    return {
+      id: `${geo}-${motNrg}-${time}`,
+      country: geo,
+      countryName: geoDim.category.label[geo] ?? geo,
+      year: time,
+      motorEnergy: motNrg,
+      motorEnergyName: motNrgDim.category.label[motNrg] ?? motNrg,
+      count,
+      source: 'eurostat' as const,
+    };
+  });
 }
