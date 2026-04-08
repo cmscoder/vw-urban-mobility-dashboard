@@ -101,4 +101,40 @@ describe('transformResponse', () => {
 
     expect(transformResponse(empty)).toEqual([]);
   });
+
+  it('falls back to code when category label is missing', () => {
+    const noLabels: EurostatResponse = {
+      ...mockResponse,
+      dimension: {
+        ...mockResponse.dimension,
+        geo: {
+          label: 'Geopolitical entity',
+          category: {
+            index: { XX: 0 },
+            label: {},
+          },
+        },
+        mot_nrg: {
+          label: 'Motor energy',
+          category: {
+            index: { UNK: 0 },
+            label: {},
+          },
+        },
+        time: {
+          label: 'Time',
+          category: { index: { '2023': 0 }, label: { '2023': '2023' } },
+        },
+      },
+      id: ['freq', 'unit', 'mot_nrg', 'engine', 'geo', 'time'],
+      size: [1, 1, 1, 1, 1, 1],
+      value: { '0': 42 },
+    };
+
+    const records = transformResponse(noLabels);
+
+    expect(records).toHaveLength(1);
+    expect(records[0].countryName).toBe('XX');
+    expect(records[0].motorEnergyName).toBe('UNK');
+  });
 });

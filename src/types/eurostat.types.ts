@@ -23,11 +23,8 @@ export interface EurostatResponse {
 export interface EurostatQueryParams {
   format?: string;
   lang?: string;
-  time?: string;
   unit?: string;
-  mot_nrg?: string;
-  engine?: string;
   geo?: string;
+  geoLevel?: 'country' | 'aggregate' | 'nuts1' | 'nuts2' | 'nuts3' | 'city';
   sinceTimePeriod?: string;
-  untilTimePeriod?: string;
 }
