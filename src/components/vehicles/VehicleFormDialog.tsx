@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { VehicleFormData, VehicleRecord } from '@/types';
+import { MOTOR_ENERGY_OPTIONS } from '@/constants';
 
 interface VehicleFormDialogProps {
   open: boolean;
@@ -25,15 +26,6 @@ interface VehicleFormDialogProps {
   onSubmit: (data: VehicleFormData) => void;
   record?: VehicleRecord | null;
 }
-
-const ENERGY_OPTIONS = [
-  { value: 'ELC', label: 'Electricity' },
-  { value: 'ELC_PET_HYB', label: 'Hybrid Electric-Petrol' },
-  { value: 'ELC_DIE_HYB', label: 'Hybrid Diesel-Electric' },
-  { value: 'ELC_PET_PI', label: 'Plug-in Petrol-Electric' },
-  { value: 'ELC_DIE_PI', label: 'Plug-in Diesel-Electric' },
-  { value: 'HYD_FCELL', label: 'Hydrogen & Fuel Cells' },
-];
 
 const EMPTY_FORM: VehicleFormData = {
   country: '',
@@ -71,7 +63,7 @@ export function VehicleFormDialog({
   }, [open, record]);
 
   function handleEnergyChange(value: string) {
-    const option = ENERGY_OPTIONS.find((o) => o.value === value);
+    const option = MOTOR_ENERGY_OPTIONS.find((o) => o.value === value);
     setForm((prev) => ({
       ...prev,
       motorEnergy: value,
@@ -177,7 +169,7 @@ export function VehicleFormDialog({
                 <SelectValue placeholder="Select energy type" />
               </SelectTrigger>
               <SelectContent>
-                {ENERGY_OPTIONS.map((opt) => (
+                {MOTOR_ENERGY_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </SelectItem>
