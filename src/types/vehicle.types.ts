@@ -10,3 +10,10 @@ export interface VehicleRecord {
 }
 
 export type VehicleFormData = Omit<VehicleRecord, 'id' | 'source'>;
+
+export interface VehicleFilters {
+  country: string;
+  year: string;
+  motorEnergy: string;
+  source: string;
+}

@@ -5,4 +5,8 @@ export type {
   EurostatQueryParams,
 } from './eurostat.types';
 
-export type { VehicleRecord, VehicleFormData } from './vehicle.types';
+export type {
+  VehicleRecord,
+  VehicleFormData,
+  VehicleFilters,
+} from './vehicle.types';
