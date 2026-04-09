@@ -37,6 +37,20 @@ function toRows(records: VehicleRecord[]): Row<VehicleRecord>[] {
 
 const mockRows = toRows(mockRecords);
 
+const mockPagination = {
+  pageIndex: 0,
+  pageSize: 20,
+  pageCount: 1,
+  filteredTotal: 2,
+  canPreviousPage: false,
+  canNextPage: false,
+  goToFirstPage: vi.fn(),
+  goToPreviousPage: vi.fn(),
+  goToNextPage: vi.fn(),
+  goToLastPage: vi.fn(),
+  setPageSize: vi.fn(),
+};
+
 const defaultProps = {
   filters: EMPTY_FILTERS,
   searchQuery: '',
@@ -53,6 +67,7 @@ const defaultProps = {
   activeFilterCount: 0,
   onFilterChange: vi.fn(),
   onFiltersClear: vi.fn(),
+  pagination: mockPagination,
   onEdit: vi.fn(),
   onDelete: vi.fn(),
 };
@@ -252,6 +267,58 @@ describe('VehicleTable — Desktop', () => {
     );
 
     expect(desktop.getByLabelText('Clear search')).toBeInTheDocument();
+  });
+
+  it('renders pagination controls when there are rows', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(desktop.getByLabelText('First page')).toBeInTheDocument();
+    expect(desktop.getByLabelText('Previous page')).toBeInTheDocument();
+    expect(desktop.getByLabelText('Next page')).toBeInTheDocument();
+    expect(desktop.getByLabelText('Last page')).toBeInTheDocument();
+    expect(desktop.getByLabelText('Rows per page')).toBeInTheDocument();
+  });
+
+  it('does not render pagination when there are no rows', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable {...defaultProps} rows={[]} isLoading={false} />
+    );
+
+    expect(desktop.queryByLabelText('Next page')).not.toBeInTheDocument();
+  });
+
+  it('shows range text in pagination', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(desktop.getByText('1–2 of 2')).toBeInTheDocument();
+  });
+
+  it('calls goToNextPage when Next is clicked', async () => {
+    const user = userEvent.setup();
+    const goToNextPage = vi.fn();
+    const paginationWithNext = {
+      ...mockPagination,
+      canNextPage: true,
+      pageCount: 3,
+      filteredTotal: 50,
+      goToNextPage,
+    };
+
+    const { desktop } = renderDesktop(
+      <VehicleTable
+        {...defaultProps}
+        rows={mockRows}
+        pagination={paginationWithNext}
+        isLoading={false}
+      />
+    );
+
+    await user.click(desktop.getByLabelText('Next page'));
+    expect(goToNextPage).toHaveBeenCalled();
   });
 });
 
