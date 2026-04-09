@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { VehicleTable } from '../VehicleTable';
 import { EMPTY_FILTERS } from '@/constants';
+import type { Row } from '@tanstack/react-table';
 import type { VehicleRecord } from '@/types';
 
 const mockRecords: VehicleRecord[] = [
@@ -27,6 +28,14 @@ const mockRecords: VehicleRecord[] = [
     source: 'local',
   },
 ];
+
+function toRows(records: VehicleRecord[]): Row<VehicleRecord>[] {
+  return records.map(
+    (record, i) => ({ id: String(i), original: record }) as Row<VehicleRecord>
+  );
+}
+
+const mockRows = toRows(mockRecords);
 
 const defaultProps = {
   filters: EMPTY_FILTERS,
@@ -61,7 +70,7 @@ function renderMobile(ui: React.ReactElement) {
 describe('VehicleTable — Desktop', () => {
   it('renders inline filter dropdowns in the header', () => {
     const { desktop } = renderDesktop(
-      <VehicleTable {...defaultProps} vehicles={[]} isLoading={false} />
+      <VehicleTable {...defaultProps} rows={[]} isLoading={false} />
     );
 
     expect(desktop.getByLabelText('Filter by country')).toBeInTheDocument();
@@ -74,7 +83,7 @@ describe('VehicleTable — Desktop', () => {
 
   it('shows empty state when no records exist', () => {
     const { desktop } = renderDesktop(
-      <VehicleTable {...defaultProps} vehicles={[]} isLoading={false} />
+      <VehicleTable {...defaultProps} rows={[]} isLoading={false} />
     );
 
     expect(desktop.getByText('No records found.')).toBeInTheDocument();
@@ -82,7 +91,7 @@ describe('VehicleTable — Desktop', () => {
 
   it('renders loading skeletons when isLoading is true', () => {
     const { desktop } = renderDesktop(
-      <VehicleTable {...defaultProps} vehicles={[]} isLoading={true} />
+      <VehicleTable {...defaultProps} rows={[]} isLoading={true} />
     );
 
     const skeletons = desktop.queryAllByRole('row');
@@ -91,11 +100,7 @@ describe('VehicleTable — Desktop', () => {
 
   it('renders vehicle records with formatted data', () => {
     const { desktop } = renderDesktop(
-      <VehicleTable
-        {...defaultProps}
-        vehicles={mockRecords}
-        isLoading={false}
-      />
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
     );
 
     expect(desktop.getByText('Germany')).toBeInTheDocument();
@@ -117,7 +122,7 @@ describe('VehicleTable — Desktop', () => {
     const { desktop } = renderDesktop(
       <VehicleTable
         {...defaultProps}
-        vehicles={[mockRecords[0]]}
+        rows={toRows([mockRecords[0]])}
         isLoading={false}
         onEdit={onEdit}
       />
@@ -139,7 +144,7 @@ describe('VehicleTable — Desktop', () => {
     const { desktop } = renderDesktop(
       <VehicleTable
         {...defaultProps}
-        vehicles={[mockRecords[0]]}
+        rows={toRows([mockRecords[0]])}
         isLoading={false}
         onDelete={onDelete}
       />
@@ -158,7 +163,7 @@ describe('VehicleTable — Desktop', () => {
     const { desktop } = renderDesktop(
       <VehicleTable
         {...defaultProps}
-        vehicles={mockRecords}
+        rows={mockRows}
         hasActiveFilters={true}
         activeFilterCount={1}
         isLoading={false}
@@ -175,7 +180,7 @@ describe('VehicleTable — Desktop', () => {
     const { desktop } = renderDesktop(
       <VehicleTable
         {...defaultProps}
-        vehicles={mockRecords}
+        rows={mockRows}
         hasActiveFilters={true}
         activeFilterCount={1}
         onFiltersClear={onFiltersClear}
@@ -194,7 +199,7 @@ describe('VehicleTable — Desktop', () => {
     const { desktop } = renderDesktop(
       <VehicleTable
         {...defaultProps}
-        vehicles={mockRecords}
+        rows={mockRows}
         onFilterChange={onFilterChange}
         isLoading={false}
       />
@@ -212,7 +217,7 @@ describe('VehicleTable — Mobile', () => {
   it('shows a Filters button that opens the bottom sheet', async () => {
     const user = userEvent.setup();
     const { mobile } = renderMobile(
-      <VehicleTable {...defaultProps} vehicles={[]} isLoading={false} />
+      <VehicleTable {...defaultProps} rows={[]} isLoading={false} />
     );
 
     const filtersBtn = mobile.getByRole('button', { name: /filters/i });
@@ -229,7 +234,7 @@ describe('VehicleTable — Mobile', () => {
     const { mobile } = renderMobile(
       <VehicleTable
         {...defaultProps}
-        vehicles={mockRecords}
+        rows={mockRows}
         activeFilterCount={2}
         hasActiveFilters={true}
         isLoading={false}
@@ -241,7 +246,7 @@ describe('VehicleTable — Mobile', () => {
 
   it('shows empty state when no records exist', () => {
     const { mobile } = renderMobile(
-      <VehicleTable {...defaultProps} vehicles={[]} isLoading={false} />
+      <VehicleTable {...defaultProps} rows={[]} isLoading={false} />
     );
 
     expect(mobile.getByText('No records found.')).toBeInTheDocument();
@@ -249,11 +254,7 @@ describe('VehicleTable — Mobile', () => {
 
   it('renders vehicle cards with record data', () => {
     const { mobile } = renderMobile(
-      <VehicleTable
-        {...defaultProps}
-        vehicles={mockRecords}
-        isLoading={false}
-      />
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
     );
 
     expect(mobile.getByText('Germany')).toBeInTheDocument();
@@ -268,7 +269,7 @@ describe('VehicleTable — Mobile', () => {
     const { mobile } = renderMobile(
       <VehicleTable
         {...defaultProps}
-        vehicles={[mockRecords[0]]}
+        rows={toRows([mockRecords[0]])}
         isLoading={false}
         onEdit={onEdit}
       />
@@ -285,7 +286,7 @@ describe('VehicleTable — Mobile', () => {
     const { mobile } = renderMobile(
       <VehicleTable
         {...defaultProps}
-        vehicles={[mockRecords[0]]}
+        rows={toRows([mockRecords[0]])}
         isLoading={false}
         onDelete={onDelete}
       />

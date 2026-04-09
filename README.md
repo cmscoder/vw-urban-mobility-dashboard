@@ -78,6 +78,47 @@ If either step fails, the commit is **rejected** and the developer gets immediat
 
 ---
 
+## 🧭 Architecture Decision Records (ADRs)
+
+The project follows lightweight ADRs directly in this README to document _why_ key technical choices were made.
+
+### ADR-001: Data fetching and cache strategy
+
+- **Status:** Accepted
+- **Context:** The app consumes Eurostat data with loading/error lifecycle and needs predictable async state.
+- **Decision:** Use **TanStack Query** for server-state fetching and caching.
+- **Consequences:** Consistent async state handling and easier retries/refetch patterns, with a small library overhead.
+
+### ADR-002: Local CRUD persistence and state separation
+
+- **Status:** Accepted
+- **Context:** The Eurostat API is read-only, but this project requires full CRUD capabilities. We must clearly separate **Server State** (API data lifecycle) from **UI State** (local user mutations).
+- **Decision:** Use a **Seed Pattern**: fetch data once with **TanStack Query** and seed it into **Zustand** (`persist` middleware). Zustand then becomes the single source of truth for local CRUD operations.
+- **Consequences:** Fast and simple local persistence with minimal boilerplate. This elegantly solves the read-only API limitation while preserving strict server-state vs UI-state separation.
+
+### ADR-003: Table engine and filtering model
+
+- **Status:** Accepted
+- **Context:** Current requirements include column filters, with pagination/search planned next.
+- **Decision:** Standardize table state on **TanStack Table** and use `getFilteredRowModel()` with exact string filters (`equalsString`) for dropdown fields.
+- **Consequences:** Scalable foundation for future pagination/sorting/search; introduces table abstraction but avoids ad-hoc growth in custom filter logic.
+
+### ADR-004: Responsive data visualization pattern
+
+- **Status:** Accepted
+- **Context:** Dense desktop tables create poor UX on mobile screens.
+- **Decision:** Use a **dual responsive pattern**: desktop table (`md+`) and mobile cards (`<md`), with mobile filters inside a bottom sheet (`Drawer`/`vaul`).
+- **Consequences:** Better mobile readability and touch usability; requires maintaining two presentation layouts over the same row model.
+
+### ADR-005: UI system and styling strategy
+
+- **Status:** Accepted
+- **Context:** The project requires fast delivery with consistent UI quality and maintainable component patterns.
+- **Decision:** Use **Shadcn UI + Tailwind CSS v3.4.17** as the design system baseline.
+- **Consequences:** Strong accessibility defaults and consistent component patterns; some generated primitives require project-level adaptation and maintenance.
+
+---
+
 ## 🚀 Getting Started
 
 ### 🛠️ Installation & Environment Consistency

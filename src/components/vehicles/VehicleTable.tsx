@@ -11,11 +11,11 @@ import { CardSkeleton } from '@/components/vehicles/CardSkeleton';
 import { VehicleTableRow } from '@/components/vehicles/VehicleTableRow';
 import { VehicleCard } from '@/components/vehicles/VehicleCard';
 import { MobileFilters } from '@/components/vehicles/MobileFilters';
-import type { VehicleFilters, VehicleRecord } from '@/types';
-import type { FilterOption } from '@/hooks';
+import type { Row } from '@tanstack/react-table';
+import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
 
 interface VehicleTableProps {
-  vehicles: VehicleRecord[];
+  rows: Row<VehicleRecord>[];
   filters: VehicleFilters;
   countryOptions: FilterOption[];
   yearOptions: FilterOption[];
@@ -24,12 +24,15 @@ interface VehicleTableProps {
   onFilterChange: (field: keyof VehicleFilters, value: string) => void;
   onFiltersClear: () => void;
   isLoading: boolean;
+  columnsCount?: number;
+  skeletonRowCount?: number;
+  skeletonCardCount?: number;
   onEdit: (record: VehicleRecord) => void;
   onDelete: (record: VehicleRecord) => void;
 }
 
 export function VehicleTable({
-  vehicles,
+  rows,
   filters,
   countryOptions,
   yearOptions,
@@ -38,6 +41,9 @@ export function VehicleTable({
   onFilterChange,
   onFiltersClear,
   isLoading,
+  columnsCount = 6,
+  skeletonRowCount = 8,
+  skeletonCardCount = 6,
   onEdit,
   onDelete,
 }: VehicleTableProps) {
@@ -61,14 +67,14 @@ export function VehicleTable({
         />
         <div className="mt-3 space-y-3">
           {isLoading ? (
-            <CardSkeleton />
-          ) : vehicles.length === 0 ? (
+            <CardSkeleton count={skeletonCardCount} />
+          ) : rows.length === 0 ? (
             emptyState
           ) : (
-            vehicles.map((record) => (
+            rows.map((row) => (
               <VehicleCard
-                key={record.id}
-                record={record}
+                key={row.id}
+                record={row.original}
                 onEdit={onEdit}
                 onDelete={onDelete}
               />
@@ -95,18 +101,21 @@ export function VehicleTable({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableSkeleton />
-            ) : vehicles.length === 0 ? (
+              <TableSkeleton
+                count={skeletonRowCount}
+                columnsCount={columnsCount}
+              />
+            ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={columnsCount} className="h-24 text-center">
                   No records found.
                 </TableCell>
               </TableRow>
             ) : (
-              vehicles.map((record) => (
+              rows.map((row) => (
                 <VehicleTableRow
-                  key={record.id}
-                  record={record}
+                  key={row.id}
+                  record={row.original}
                   onEdit={onEdit}
                   onDelete={onDelete}
                 />

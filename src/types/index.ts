@@ -9,4 +9,5 @@ export type {
   VehicleRecord,
   VehicleFormData,
   VehicleFilters,
+  FilterOption,
 } from './vehicle.types';

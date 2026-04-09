@@ -17,3 +17,8 @@ export interface VehicleFilters {
   motorEnergy: string;
   source: string;
 }
+
+export interface FilterOption {
+  value: string;
+  label: string;
+}

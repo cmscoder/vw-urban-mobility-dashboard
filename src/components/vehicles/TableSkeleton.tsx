@@ -1,14 +1,26 @@
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function TableSkeleton() {
-  return Array.from({ length: 8 }).map((_, i) => (
-    <TableRow key={i}>
-      {Array.from({ length: 6 }).map((_, j) => (
-        <TableCell key={j}>
-          <Skeleton className="h-4 w-full" />
-        </TableCell>
+interface TableSkeletonProps {
+  count?: number;
+  columnsCount?: number;
+}
+
+export function TableSkeleton({
+  count = 8,
+  columnsCount = 6,
+}: TableSkeletonProps) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <TableRow key={i}>
+          {Array.from({ length: columnsCount }).map((_, j) => (
+            <TableCell key={j}>
+              <Skeleton className="h-4 w-full" />
+            </TableCell>
+          ))}
+        </TableRow>
       ))}
-    </TableRow>
-  ));
+    </>
+  );
 }

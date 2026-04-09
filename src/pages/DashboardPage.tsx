@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useVehicles, useVehicleFilters } from '@/hooks';
+import { useVehicles, useVehicleTable } from '@/hooks';
 import { useVehicleStore } from '@/stores';
 import type { VehicleFormData, VehicleRecord } from '@/types';
 
@@ -26,15 +26,18 @@ export function DashboardPage() {
   const deleteRecord = useVehicleStore((state) => state.deleteRecord);
 
   const {
+    table,
     filters,
-    filteredVehicles,
     countryOptions,
     yearOptions,
     hasActiveFilters,
     activeFilterCount,
     updateFilter,
     clearFilters,
-  } = useVehicleFilters(vehicles);
+  } = useVehicleTable(vehicles);
+
+  const rows = table.getRowModel().rows;
+  const visibleColumnsCount = table.getVisibleLeafColumns().length || 6;
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<VehicleRecord | null>(
@@ -84,11 +87,11 @@ export function DashboardPage() {
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {isLoading
             ? 'Loading...'
-            : `${filteredVehicles.length} of ${vehicles.length} records`}
+            : `${rows.length} of ${vehicles.length} records`}
         </p>
 
         <VehicleTable
-          vehicles={filteredVehicles}
+          rows={rows}
           filters={filters}
           countryOptions={countryOptions}
           yearOptions={yearOptions}
@@ -97,6 +100,8 @@ export function DashboardPage() {
           onFilterChange={updateFilter}
           onFiltersClear={clearFilters}
           isLoading={isLoading}
+          columnsCount={visibleColumnsCount}
+          skeletonCardCount={6}
           onEdit={(record) => setEditingRecord(record)}
           onDelete={(record) => setDeletingRecord(record)}
         />

@@ -8,9 +8,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { MOTOR_ENERGY_OPTIONS, SOURCE_OPTIONS } from '@/constants';
-import type { FilterOption } from '@/hooks';
-import type { VehicleFilters } from '@/types';
+import { buildVehicleFilterFields } from '@/constants';
+import type { VehicleFilters, FilterOption } from '@/types';
 
 interface TableHeaderFiltersProps {
   filters: VehicleFilters;
@@ -32,89 +31,63 @@ export function TableHeaderFilters({
   onFilterChange,
   onFiltersClear,
 }: TableHeaderFiltersProps) {
+  const fields = buildVehicleFilterFields(
+    countryOptions,
+    yearOptions,
+    'desktop'
+  );
+  const sourceField = fields.find((f) => f.field === 'source');
+
   return (
     <TableRow>
-      <TableHead className="p-0">
-        <Select
-          value={filters.country}
-          onValueChange={(v) => onFilterChange('country', v)}
-        >
-          <SelectTrigger
-            className={TRIGGER_CLASS}
-            aria-label="Filter by country"
-          >
-            <SelectValue placeholder="Country" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Country</SelectItem>
-            {countryOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TableHead>
-      <TableHead className="p-0">
-        <Select
-          value={filters.year}
-          onValueChange={(v) => onFilterChange('year', v)}
-        >
-          <SelectTrigger className={TRIGGER_CLASS} aria-label="Filter by year">
-            <SelectValue placeholder="Year" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Year</SelectItem>
-            {yearOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TableHead>
-      <TableHead className="p-0">
-        <Select
-          value={filters.motorEnergy}
-          onValueChange={(v) => onFilterChange('motorEnergy', v)}
-        >
-          <SelectTrigger
-            className={TRIGGER_CLASS}
-            aria-label="Filter by motor energy type"
-          >
-            <SelectValue placeholder="Motor Energy" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Motor Energy</SelectItem>
-            {MOTOR_ENERGY_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TableHead>
+      {fields
+        .filter((config) => config.field !== 'source')
+        .map((config) => (
+          <TableHead key={config.field} className="p-0">
+            <Select
+              value={filters[config.field]}
+              onValueChange={(v) => onFilterChange(config.field, v)}
+            >
+              <SelectTrigger
+                className={TRIGGER_CLASS}
+                aria-label={config.ariaLabel}
+              >
+                <SelectValue placeholder={config.allLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{config.allLabel}</SelectItem>
+                {config.options.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </TableHead>
+        ))}
       <TableHead className="text-right">Count</TableHead>
       <TableHead className="p-0">
-        <Select
-          value={filters.source}
-          onValueChange={(v) => onFilterChange('source', v)}
-        >
-          <SelectTrigger
-            className={TRIGGER_CLASS}
-            aria-label="Filter by source"
+        {sourceField && (
+          <Select
+            value={filters.source}
+            onValueChange={(v) => onFilterChange('source', v)}
           >
-            <SelectValue placeholder="Source" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Source</SelectItem>
-            {SOURCE_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={TRIGGER_CLASS}
+              aria-label={sourceField.ariaLabel}
+            >
+              <SelectValue placeholder={sourceField.allLabel} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{sourceField.allLabel}</SelectItem>
+              {sourceField.options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </TableHead>
       <TableHead className="w-[60px]">
         {hasActiveFilters ? (

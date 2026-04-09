@@ -19,9 +19,8 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MOTOR_ENERGY_OPTIONS, SOURCE_OPTIONS } from '@/constants';
-import type { FilterOption } from '@/hooks';
-import type { VehicleFilters } from '@/types';
+import { buildVehicleFilterFields } from '@/constants';
+import type { VehicleFilters, FilterOption } from '@/types';
 
 interface MobileFiltersProps {
   filters: VehicleFilters;
@@ -30,6 +29,43 @@ interface MobileFiltersProps {
   activeFilterCount: number;
   onFilterChange: (field: keyof VehicleFilters, value: string) => void;
   onFiltersClear: () => void;
+}
+
+interface MobileFilterFieldProps {
+  config: {
+    field: keyof VehicleFilters;
+    label: string;
+    ariaLabel: string;
+    allLabel: string;
+    options: readonly FilterOption[];
+  };
+  value: string;
+  onChange: (field: keyof VehicleFilters, value: string) => void;
+}
+
+function MobileFilterField({
+  config,
+  value,
+  onChange,
+}: MobileFilterFieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium">{config.label}</label>
+      <Select value={value} onValueChange={(v) => onChange(config.field, v)}>
+        <SelectTrigger aria-label={config.ariaLabel}>
+          <SelectValue placeholder={config.allLabel} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{config.allLabel}</SelectItem>
+          {config.options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 export function MobileFilters({
@@ -41,11 +77,21 @@ export function MobileFilters({
   onFiltersClear,
 }: MobileFiltersProps) {
   const [open, setOpen] = useState(false);
+  const filterFields = buildVehicleFilterFields(
+    countryOptions,
+    yearOptions,
+    'mobile'
+  );
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={(e) => e.currentTarget.blur()}
+        >
           <SlidersHorizontal className="h-4 w-4" />
           Filters
           {activeFilterCount > 0 && (
@@ -68,85 +114,14 @@ export function MobileFilters({
         </DrawerHeader>
 
         <div className="space-y-4 px-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Country</label>
-            <Select
-              value={filters.country}
-              onValueChange={(v) => onFilterChange('country', v)}
-            >
-              <SelectTrigger aria-label="Filter by country">
-                <SelectValue placeholder="All Countries" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Countries</SelectItem>
-                {countryOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Year</label>
-            <Select
-              value={filters.year}
-              onValueChange={(v) => onFilterChange('year', v)}
-            >
-              <SelectTrigger aria-label="Filter by year">
-                <SelectValue placeholder="All Years" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Years</SelectItem>
-                {yearOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Motor Energy</label>
-            <Select
-              value={filters.motorEnergy}
-              onValueChange={(v) => onFilterChange('motorEnergy', v)}
-            >
-              <SelectTrigger aria-label="Filter by motor energy">
-                <SelectValue placeholder="All Energy Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Energy Types</SelectItem>
-                {MOTOR_ENERGY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Source</label>
-            <Select
-              value={filters.source}
-              onValueChange={(v) => onFilterChange('source', v)}
-            >
-              <SelectTrigger aria-label="Filter by source">
-                <SelectValue placeholder="All Sources" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sources</SelectItem>
-                {SOURCE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {filterFields.map((config) => (
+            <MobileFilterField
+              key={config.field}
+              config={config}
+              value={filters[config.field]}
+              onChange={onFilterChange}
+            />
+          ))}
         </div>
 
         <DrawerFooter>
