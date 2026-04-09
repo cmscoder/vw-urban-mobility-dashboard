@@ -12,6 +12,10 @@ import { CardSkeleton } from '@/components/vehicles/CardSkeleton';
 import { VehicleTableRow } from '@/components/vehicles/VehicleTableRow';
 import { VehicleCard } from '@/components/vehicles/VehicleCard';
 import { MobileFilters } from '@/components/vehicles/MobileFilters';
+import {
+  TablePagination,
+  type PaginationInfo,
+} from '@/components/vehicles/TablePagination';
 import type { Row } from '@tanstack/react-table';
 import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
 
@@ -26,6 +30,7 @@ interface VehicleTableProps {
   activeFilterCount: number;
   onFilterChange: (field: keyof VehicleFilters, value: string) => void;
   onFiltersClear: () => void;
+  pagination: PaginationInfo;
   isLoading: boolean;
   columnsCount?: number;
   skeletonRowCount?: number;
@@ -45,6 +50,7 @@ export function VehicleTable({
   activeFilterCount,
   onFilterChange,
   onFiltersClear,
+  pagination,
   isLoading,
   columnsCount = 6,
   skeletonRowCount = 8,
@@ -93,6 +99,9 @@ export function VehicleTable({
             ))
           )}
         </div>
+        {!isLoading && rows.length > 0 && (
+          <TablePagination pagination={pagination} />
+        )}
       </div>
 
       {/* Desktop: search + table */}
@@ -142,6 +151,9 @@ export function VehicleTable({
             </TableBody>
           </Table>
         </div>
+        {!isLoading && rows.length > 0 && (
+          <TablePagination pagination={pagination} />
+        )}
       </div>
     </>
   );

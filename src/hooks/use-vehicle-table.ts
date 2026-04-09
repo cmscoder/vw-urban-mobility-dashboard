@@ -3,10 +3,12 @@ import {
   useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   type ColumnFiltersState,
+  type PaginationState,
 } from '@tanstack/react-table';
 import { useDebounce } from 'use-debounce';
-import { EMPTY_FILTERS, vehicleColumns } from '@/constants';
+import { EMPTY_FILTERS, DEFAULT_PAGE_SIZE, vehicleColumns } from '@/constants';
 import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -27,14 +29,21 @@ export function useVehicleTable(data: VehicleRecord[]) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch] = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: DEFAULT_PAGE_SIZE,
+  });
 
   const table = useReactTable({
     data,
     columns: vehicleColumns,
-    state: { columnFilters, globalFilter: debouncedSearch },
+    state: { columnFilters, globalFilter: debouncedSearch, pagination },
     onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: true,
   });
 
   const filters = useMemo(
@@ -77,6 +86,8 @@ export function useVehicleTable(data: VehicleRecord[]) {
     setColumnFilters([]);
   }, []);
 
+  const filteredTotal = table.getFilteredRowModel().rows.length;
+
   return {
     table,
     filters,
@@ -88,5 +99,18 @@ export function useVehicleTable(data: VehicleRecord[]) {
     activeFilterCount,
     updateFilter,
     clearFilters,
+    pagination: {
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize,
+      pageCount: table.getPageCount(),
+      filteredTotal,
+      canPreviousPage: table.getCanPreviousPage(),
+      canNextPage: table.getCanNextPage(),
+      goToFirstPage: () => table.setPageIndex(0),
+      goToPreviousPage: () => table.previousPage(),
+      goToNextPage: () => table.nextPage(),
+      goToLastPage: () => table.setPageIndex(table.getPageCount() - 1),
+      setPageSize: (size: number) => table.setPageSize(size),
+    },
   };
 }

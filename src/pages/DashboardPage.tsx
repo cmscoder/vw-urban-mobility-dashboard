@@ -36,6 +36,7 @@ export function DashboardPage() {
     activeFilterCount,
     updateFilter,
     clearFilters,
+    pagination,
   } = useVehicleTable(vehicles);
 
   const rows = table.getRowModel().rows;
@@ -89,7 +90,7 @@ export function DashboardPage() {
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {isLoading
             ? 'Loading...'
-            : `${rows.length} of ${vehicles.length} records`}
+            : `${pagination.filteredTotal} of ${vehicles.length} records`}
         </p>
 
         <VehicleTable
@@ -103,6 +104,7 @@ export function DashboardPage() {
           activeFilterCount={activeFilterCount}
           onFilterChange={updateFilter}
           onFiltersClear={clearFilters}
+          pagination={pagination}
           isLoading={isLoading}
           columnsCount={visibleColumnsCount}
           skeletonCardCount={6}

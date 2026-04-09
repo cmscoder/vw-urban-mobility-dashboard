@@ -4,3 +4,4 @@ export { SOURCE_OPTIONS } from './source';
 export { EMPTY_FORM, REQUIRED_FORM_FIELDS } from './vehicle-form';
 export { vehicleColumns } from './table-columns';
 export { buildVehicleFilterFields } from './vehicle-filter-fields';
+export { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './pagination';
