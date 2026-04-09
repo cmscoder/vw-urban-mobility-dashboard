@@ -28,6 +28,8 @@ export function DashboardPage() {
   const {
     table,
     filters,
+    searchQuery,
+    setSearchQuery,
     countryOptions,
     yearOptions,
     hasActiveFilters,
@@ -93,6 +95,8 @@ export function DashboardPage() {
         <VehicleTable
           rows={rows}
           filters={filters}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           countryOptions={countryOptions}
           yearOptions={yearOptions}
           hasActiveFilters={hasActiveFilters}
