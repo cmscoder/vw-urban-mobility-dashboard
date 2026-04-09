@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,43 +7,16 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { FormTextField } from '@/components/ui/form-text-field';
+import { MotorEnergySelect } from '@/components/vehicles/MotorEnergySelect';
+import { useVehicleForm } from '@/hooks';
 import type { VehicleFormData, VehicleRecord } from '@/types';
-import { MOTOR_ENERGY_OPTIONS } from '@/constants';
 
 interface VehicleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: VehicleFormData) => void;
   record?: VehicleRecord | null;
-}
-
-const EMPTY_FORM: VehicleFormData = {
-  country: '',
-  countryName: '',
-  year: '',
-  motorEnergy: '',
-  motorEnergyName: '',
-  count: null,
-};
-
-function buildFormFromRecord(record: VehicleRecord): VehicleFormData {
-  return {
-    country: record.country,
-    countryName: record.countryName,
-    year: record.year,
-    motorEnergy: record.motorEnergy,
-    motorEnergyName: record.motorEnergyName,
-    count: record.count,
-  };
 }
 
 export function VehicleFormDialog({
@@ -54,35 +26,20 @@ export function VehicleFormDialog({
   record,
 }: VehicleFormDialogProps) {
   const isEditing = !!record;
-  const [form, setForm] = useState<VehicleFormData>(EMPTY_FORM);
+  const {
+    form,
+    isValid,
+    updateField,
+    updateCountry,
+    updateMotorEnergy,
+    updateCount,
+  } = useVehicleForm(open, record);
 
-  useEffect(() => {
-    if (open) {
-      setForm(record ? buildFormFromRecord(record) : EMPTY_FORM);
-    }
-  }, [open, record]);
-
-  function handleEnergyChange(value: string) {
-    const option = MOTOR_ENERGY_OPTIONS.find((o) => o.value === value);
-    setForm((prev) => ({
-      ...prev,
-      motorEnergy: value,
-      motorEnergyName: option?.label ?? value,
-    }));
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     onSubmit(form);
     onOpenChange(false);
   }
-
-  const isValid =
-    form.country.trim() !== '' &&
-    form.countryName.trim() !== '' &&
-    form.year.trim() !== '' &&
-    form.motorEnergy !== '' &&
-    form.count !== null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,84 +56,47 @@ export function VehicleFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="countryCode">Country Code</Label>
-              <Input
-                id="countryCode"
-                placeholder="DE"
-                maxLength={2}
-                aria-required="true"
-                value={form.country}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    country: e.target.value.toUpperCase(),
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="countryName">Country Name</Label>
-              <Input
-                id="countryName"
-                placeholder="Germany"
-                aria-required="true"
-                value={form.countryName}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, countryName: e.target.value }))
-                }
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormTextField
+              id="countryCode"
+              label="Country Code"
+              placeholder="DE"
+              maxLength={2}
+              value={form.country}
+              onChange={updateCountry}
+            />
+            <FormTextField
+              id="countryName"
+              label="Country Name"
+              placeholder="Germany"
+              value={form.countryName}
+              onChange={(v) => updateField('countryName', v)}
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Input
-                id="year"
-                placeholder="2024"
-                maxLength={4}
-                aria-required="true"
-                value={form.year}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, year: e.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="count">Vehicle Count</Label>
-              <Input
-                id="count"
-                type="number"
-                placeholder="0"
-                aria-required="true"
-                value={form.count ?? ''}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    count: e.target.value ? Number(e.target.value) : null,
-                  }))
-                }
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormTextField
+              id="year"
+              label="Year"
+              placeholder="2024"
+              maxLength={4}
+              value={form.year}
+              onChange={(v) => updateField('year', v)}
+            />
+            <FormTextField
+              id="count"
+              label="Vehicle Count"
+              placeholder="0"
+              type="number"
+              value={form.count}
+              onChange={updateCount}
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="motorEnergy">Motor Energy</Label>
-            <Select value={form.motorEnergy} onValueChange={handleEnergyChange}>
-              <SelectTrigger id="motorEnergy" aria-required="true">
-                <SelectValue placeholder="Select energy type" />
-              </SelectTrigger>
-              <SelectContent>
-                {MOTOR_ENERGY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <MotorEnergySelect
+            value={form.motorEnergy}
+            onChange={updateMotorEnergy}
+          />
 
           <DialogFooter>
             <Button

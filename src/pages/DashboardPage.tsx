@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useVehicles } from '@/hooks';
+import { useVehicles, useVehicleTable } from '@/hooks';
 import { useVehicleStore } from '@/stores';
 import type { VehicleFormData, VehicleRecord } from '@/types';
 
@@ -24,6 +24,20 @@ export function DashboardPage() {
   const addRecord = useVehicleStore((state) => state.addRecord);
   const updateRecord = useVehicleStore((state) => state.updateRecord);
   const deleteRecord = useVehicleStore((state) => state.deleteRecord);
+
+  const {
+    table,
+    filters,
+    countryOptions,
+    yearOptions,
+    hasActiveFilters,
+    activeFilterCount,
+    updateFilter,
+    clearFilters,
+  } = useVehicleTable(vehicles);
+
+  const rows = table.getRowModel().rows;
+  const visibleColumnsCount = table.getVisibleLeafColumns().length || 6;
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<VehicleRecord | null>(
@@ -60,7 +74,7 @@ export function DashboardPage() {
         </Button>
       </Header>
 
-      <main className="mx-auto max-w-7xl space-y-4 px-6 py-6">
+      <main className="mx-auto max-w-7xl space-y-4 px-4 py-4 sm:px-6 sm:py-6">
         {isError && (
           <div
             role="alert"
@@ -71,25 +85,34 @@ export function DashboardPage() {
         )}
 
         <p className="text-sm text-muted-foreground" aria-live="polite">
-          {isLoading ? 'Loading...' : `${vehicles.length} records`}
+          {isLoading
+            ? 'Loading...'
+            : `${rows.length} of ${vehicles.length} records`}
         </p>
 
         <VehicleTable
-          vehicles={vehicles}
+          rows={rows}
+          filters={filters}
+          countryOptions={countryOptions}
+          yearOptions={yearOptions}
+          hasActiveFilters={hasActiveFilters}
+          activeFilterCount={activeFilterCount}
+          onFilterChange={updateFilter}
+          onFiltersClear={clearFilters}
           isLoading={isLoading}
+          columnsCount={visibleColumnsCount}
+          skeletonCardCount={6}
           onEdit={(record) => setEditingRecord(record)}
           onDelete={(record) => setDeletingRecord(record)}
         />
       </main>
 
-      {/* Create dialog */}
       <VehicleFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
       />
 
-      {/* Edit dialog */}
       <VehicleFormDialog
         open={!!editingRecord}
         onOpenChange={(open) => !open && setEditingRecord(null)}
@@ -97,7 +120,6 @@ export function DashboardPage() {
         record={editingRecord}
       />
 
-      {/* Delete confirmation */}
       <AlertDialog
         open={!!deletingRecord}
         onOpenChange={(open) => !open && setDeletingRecord(null)}
