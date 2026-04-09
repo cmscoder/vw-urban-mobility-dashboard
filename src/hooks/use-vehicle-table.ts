@@ -5,8 +5,11 @@ import {
   getFilteredRowModel,
   type ColumnFiltersState,
 } from '@tanstack/react-table';
+import { useDebounce } from 'use-debounce';
 import { EMPTY_FILTERS, vehicleColumns } from '@/constants';
 import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 function columnFiltersToFilters(
   colFilters: ColumnFiltersState
@@ -22,11 +25,13 @@ function columnFiltersToFilters(
 
 export function useVehicleTable(data: VehicleRecord[]) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch] = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
 
   const table = useReactTable({
     data,
     columns: vehicleColumns,
-    state: { columnFilters },
+    state: { columnFilters, globalFilter: debouncedSearch },
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -75,6 +80,8 @@ export function useVehicleTable(data: VehicleRecord[]) {
   return {
     table,
     filters,
+    searchQuery,
+    setSearchQuery,
     countryOptions,
     yearOptions,
     hasActiveFilters,

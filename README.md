@@ -99,9 +99,9 @@ The project follows lightweight ADRs directly in this README to document _why_ k
 ### ADR-003: Table engine and filtering model
 
 - **Status:** Accepted
-- **Context:** Current requirements include column filters, with pagination/search planned next.
+- **Context:** Column filters are required; global search and pagination were planned as follow-ups (see ADR-006 for search).
 - **Decision:** Standardize table state on **TanStack Table** and use `getFilteredRowModel()` with exact string filters (`equalsString`) for dropdown fields.
-- **Consequences:** Scalable foundation for future pagination/sorting/search; introduces table abstraction but avoids ad-hoc growth in custom filter logic.
+- **Consequences:** Scalable foundation for pagination/sorting and global search; introduces table abstraction but avoids ad-hoc growth in custom filter logic.
 
 ### ADR-004: Responsive data visualization pattern
 
@@ -116,6 +116,13 @@ The project follows lightweight ADRs directly in this README to document _why_ k
 - **Context:** The project requires fast delivery with consistent UI quality and maintainable component patterns.
 - **Decision:** Use **Shadcn UI + Tailwind CSS v3.4.17** as the design system baseline.
 - **Consequences:** Strong accessibility defaults and consistent component patterns; some generated primitives require project-level adaptation and maintenance.
+
+### ADR-006: Global search (debounce and layering)
+
+- **Status:** Accepted
+- **Context:** Users need to search across all table fields. Filtering large in-memory datasets on every keystroke would waste work; debounce logic also does not belong inside generic `ui/` primitives (see ADR-005).
+- **Decision:** Use TanStack Table’s **global filter** by passing a debounced string into `state.globalFilter` while keeping an immediate `searchQuery` in `useVehicleTable` for the controlled input. Debouncing is implemented with **`use-debounce`** (`useDebounce`). The **`SearchInput`** component stays presentational: it composes Shadcn `Input` with icons and a clear action; native WebKit/Chrome clear controls for `type="search"` are hidden with CSS so only one clear affordance is shown.
+- **Consequences:** Snappier typing UX with fewer filter passes; one small runtime dependency (`use-debounce`); search behavior stays testable and centralized in the table hook rather than scattered in components.
 
 ---
 

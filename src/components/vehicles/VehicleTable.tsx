@@ -5,6 +5,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SearchInput } from '@/components/ui/search-input';
 import { TableHeaderFilters } from '@/components/vehicles/TableHeaderFilters';
 import { TableSkeleton } from '@/components/vehicles/TableSkeleton';
 import { CardSkeleton } from '@/components/vehicles/CardSkeleton';
@@ -17,6 +18,8 @@ import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
 interface VehicleTableProps {
   rows: Row<VehicleRecord>[];
   filters: VehicleFilters;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   countryOptions: FilterOption[];
   yearOptions: FilterOption[];
   hasActiveFilters: boolean;
@@ -34,6 +37,8 @@ interface VehicleTableProps {
 export function VehicleTable({
   rows,
   filters,
+  searchQuery,
+  onSearchChange,
   countryOptions,
   yearOptions,
   hasActiveFilters,
@@ -55,16 +60,23 @@ export function VehicleTable({
 
   return (
     <>
-      {/* Mobile: filters + cards */}
+      {/* Mobile: search + filters + cards */}
       <div className="md:hidden" data-testid="mobile-view">
-        <MobileFilters
-          filters={filters}
-          countryOptions={countryOptions}
-          yearOptions={yearOptions}
-          activeFilterCount={activeFilterCount}
-          onFilterChange={onFilterChange}
-          onFiltersClear={onFiltersClear}
-        />
+        <div className="flex items-center gap-2">
+          <SearchInput
+            value={searchQuery}
+            onChange={onSearchChange}
+            className="flex-1"
+          />
+          <MobileFilters
+            filters={filters}
+            countryOptions={countryOptions}
+            yearOptions={yearOptions}
+            activeFilterCount={activeFilterCount}
+            onFilterChange={onFilterChange}
+            onFiltersClear={onFiltersClear}
+          />
+        </div>
         <div className="mt-3 space-y-3">
           {isLoading ? (
             <CardSkeleton count={skeletonCardCount} />
@@ -83,46 +95,53 @@ export function VehicleTable({
         </div>
       </div>
 
-      {/* Desktop: traditional table */}
-      <div
-        className="hidden rounded-md border md:block"
-        data-testid="desktop-view"
-      >
-        <Table>
-          <TableHeader>
-            <TableHeaderFilters
-              filters={filters}
-              countryOptions={countryOptions}
-              yearOptions={yearOptions}
-              hasActiveFilters={hasActiveFilters}
-              onFilterChange={onFilterChange}
-              onFiltersClear={onFiltersClear}
-            />
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableSkeleton
-                count={skeletonRowCount}
-                columnsCount={columnsCount}
+      {/* Desktop: search + table */}
+      <div className="hidden md:block" data-testid="desktop-view">
+        <SearchInput
+          value={searchQuery}
+          onChange={onSearchChange}
+          className="mb-4 max-w-sm"
+        />
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableHeaderFilters
+                filters={filters}
+                countryOptions={countryOptions}
+                yearOptions={yearOptions}
+                hasActiveFilters={hasActiveFilters}
+                onFilterChange={onFilterChange}
+                onFiltersClear={onFiltersClear}
               />
-            ) : rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columnsCount} className="h-24 text-center">
-                  No records found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((row) => (
-                <VehicleTableRow
-                  key={row.id}
-                  record={row.original}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableSkeleton
+                  count={skeletonRowCount}
+                  columnsCount={columnsCount}
                 />
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columnsCount}
+                    className="h-24 text-center"
+                  >
+                    No records found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rows.map((row) => (
+                  <VehicleTableRow
+                    key={row.id}
+                    record={row.original}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </>
   );

@@ -39,6 +39,8 @@ const mockRows = toRows(mockRecords);
 
 const defaultProps = {
   filters: EMPTY_FILTERS,
+  searchQuery: '',
+  onSearchChange: vi.fn(),
   countryOptions: [
     { value: 'FR', label: 'France' },
     { value: 'DE', label: 'Germany' },
@@ -211,6 +213,46 @@ describe('VehicleTable — Desktop', () => {
 
     expect(onFilterChange).toHaveBeenCalledWith('country', 'DE');
   });
+
+  it('renders a search input', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(desktop.getByLabelText('Search records')).toBeInTheDocument();
+  });
+
+  it('calls onSearchChange when typing in the search input', async () => {
+    const user = userEvent.setup();
+    const onSearchChange = vi.fn();
+
+    const { desktop } = renderDesktop(
+      <VehicleTable
+        {...defaultProps}
+        rows={mockRows}
+        onSearchChange={onSearchChange}
+        isLoading={false}
+      />
+    );
+
+    const searchInput = desktop.getByLabelText('Search records');
+    await user.type(searchInput, 'Germany');
+
+    expect(onSearchChange).toHaveBeenCalled();
+  });
+
+  it('shows a clear button when searchQuery has a value', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable
+        {...defaultProps}
+        rows={mockRows}
+        searchQuery="test"
+        isLoading={false}
+      />
+    );
+
+    expect(desktop.getByLabelText('Clear search')).toBeInTheDocument();
+  });
 });
 
 describe('VehicleTable — Mobile', () => {
@@ -294,5 +336,24 @@ describe('VehicleTable — Mobile', () => {
 
     await user.click(mobile.getByLabelText('Delete Germany'));
     expect(onDelete).toHaveBeenCalledWith(mockRecords[0]);
+  });
+
+  it('renders a search input', () => {
+    const { mobile } = renderMobile(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(mobile.getByLabelText('Search records')).toBeInTheDocument();
+  });
+
+  it('renders search input next to the filters button', () => {
+    const { mobile } = renderMobile(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(mobile.getByLabelText('Search records')).toBeInTheDocument();
+    expect(
+      mobile.getByRole('button', { name: /filters/i })
+    ).toBeInTheDocument();
   });
 });
