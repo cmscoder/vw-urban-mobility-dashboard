@@ -33,7 +33,7 @@ import {
 } from '@/features/vehicles';
 import type { VehicleFormData, VehicleRecord } from '@/features/vehicles';
 
-export function VehicleDetailPage() {
+export default function VehicleDetailPage() {
   const { country, year } = useParams<{ country: string; year: string }>();
   const navigate = useNavigate();
 

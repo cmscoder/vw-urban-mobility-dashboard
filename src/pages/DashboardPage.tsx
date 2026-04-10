@@ -13,7 +13,7 @@ import {
 } from '@/features/vehicles';
 import type { VehicleFormData, AggregatedRecord } from '@/features/vehicles';
 
-export function DashboardPage() {
+export default function DashboardPage() {
   const navigate = useNavigate();
   const { isLoading, isError, error } = useVehicles();
   const vehicles = useVehicleStore((state) => state.vehicles);
