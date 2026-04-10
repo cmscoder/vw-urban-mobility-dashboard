@@ -9,6 +9,7 @@ interface FormTextFieldProps {
   onChange: (value: string) => void;
   type?: 'text' | 'number';
   maxLength?: number;
+  disabled?: boolean;
 }
 
 export function FormTextField({
@@ -19,6 +20,7 @@ export function FormTextField({
   onChange,
   type = 'text',
   maxLength,
+  disabled,
 }: FormTextFieldProps) {
   return (
     <div className="space-y-2">
@@ -31,6 +33,7 @@ export function FormTextField({
         aria-required="true"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
       />
     </div>
   );
