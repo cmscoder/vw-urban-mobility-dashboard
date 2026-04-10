@@ -3,14 +3,20 @@ import { MOTOR_ENERGY_OPTIONS, EMPTY_FORM } from '@/constants';
 import { buildFormFromRecord, isFormValid } from '@/utils';
 import type { VehicleFormData, VehicleRecord } from '@/types';
 
-export function useVehicleForm(open: boolean, record?: VehicleRecord | null) {
+export function useVehicleForm(
+  open: boolean,
+  record?: VehicleRecord | null,
+  defaults?: Partial<VehicleFormData>
+) {
   const [form, setForm] = useState<VehicleFormData>(EMPTY_FORM);
 
   useEffect(() => {
     if (open) {
-      setForm(record ? buildFormFromRecord(record) : EMPTY_FORM);
+      setForm(
+        record ? buildFormFromRecord(record) : { ...EMPTY_FORM, ...defaults }
+      );
     }
-  }, [open, record]);
+  }, [open, record, defaults]);
 
   const updateField = useCallback(
     <K extends keyof VehicleFormData>(field: K, value: VehicleFormData[K]) => {

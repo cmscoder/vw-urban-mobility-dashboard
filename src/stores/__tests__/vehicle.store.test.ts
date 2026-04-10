@@ -88,6 +88,23 @@ describe('vehicle store', () => {
       expect(updated?.count).toBe(9999);
     });
 
+    it('changes source to local after editing an eurostat record', () => {
+      useVehicleStore.getState().seed(mockRecords);
+      useVehicleStore.getState().updateRecord('DE-ELC-2022', {
+        country: 'DE',
+        countryName: 'Germany',
+        year: '2022',
+        motorEnergy: 'ELC',
+        motorEnergyName: 'Electricity',
+        count: 9999,
+      });
+
+      const updated = useVehicleStore
+        .getState()
+        .vehicles.find((r) => r.id === 'DE-ELC-2022');
+      expect(updated?.source).toBe('local');
+    });
+
     it('does not affect other records', () => {
       useVehicleStore.getState().seed(mockRecords);
       useVehicleStore.getState().updateRecord('DE-ELC-2022', {

@@ -37,7 +37,7 @@ export const useVehicleStore = create<VehicleStore>()(
       updateRecord: (id, data) => {
         set((state) => ({
           vehicles: state.vehicles.map((r) =>
-            r.id === id ? { ...r, ...data } : r
+            r.id === id ? { ...r, ...data, source: 'local' } : r
           ),
         }));
       },

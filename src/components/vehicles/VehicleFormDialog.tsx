@@ -12,11 +12,18 @@ import { MotorEnergySelect } from '@/components/vehicles/MotorEnergySelect';
 import { useVehicleForm } from '@/hooks';
 import type { VehicleFormData, VehicleRecord } from '@/types';
 
+interface LockedFields {
+  country: string;
+  countryName: string;
+  year: string;
+}
+
 interface VehicleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: VehicleFormData) => void;
   record?: VehicleRecord | null;
+  lockedFields?: LockedFields;
 }
 
 export function VehicleFormDialog({
@@ -24,8 +31,11 @@ export function VehicleFormDialog({
   onOpenChange,
   onSubmit,
   record,
+  lockedFields,
 }: VehicleFormDialogProps) {
   const isEditing = !!record;
+  const hasLockedFields = !!lockedFields;
+
   const {
     form,
     isValid,
@@ -33,7 +43,7 @@ export function VehicleFormDialog({
     updateCountry,
     updateMotorEnergy,
     updateCount,
-  } = useVehicleForm(open, record);
+  } = useVehicleForm(open, record, lockedFields);
 
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,18 +51,25 @@ export function VehicleFormDialog({
     onOpenChange(false);
   }
 
+  function getTitle() {
+    if (isEditing) return 'Edit Record';
+    if (hasLockedFields) return 'Add Motor Type';
+    return 'Add New Record';
+  }
+
+  function getDescription() {
+    if (isEditing) return 'Update the vehicle registration data below.';
+    if (hasLockedFields)
+      return `Add a new motor type for ${lockedFields.countryName} (${lockedFields.year}).`;
+    return 'Fill in the details to add a new vehicle registration record.';
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Edit Record' : 'Add New Record'}
-          </DialogTitle>
-          <DialogDescription>
-            {isEditing
-              ? 'Update the vehicle registration data below.'
-              : 'Fill in the details to add a new vehicle registration record.'}
-          </DialogDescription>
+          <DialogTitle>{getTitle()}</DialogTitle>
+          <DialogDescription>{getDescription()}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,6 +81,7 @@ export function VehicleFormDialog({
               maxLength={2}
               value={form.country}
               onChange={updateCountry}
+              disabled={hasLockedFields}
             />
             <FormTextField
               id="countryName"
@@ -71,6 +89,7 @@ export function VehicleFormDialog({
               placeholder="Germany"
               value={form.countryName}
               onChange={(v) => updateField('countryName', v)}
+              disabled={hasLockedFields}
             />
           </div>
 
@@ -82,6 +101,7 @@ export function VehicleFormDialog({
               maxLength={4}
               value={form.year}
               onChange={(v) => updateField('year', v)}
+              disabled={hasLockedFields}
             />
             <FormTextField
               id="count"
