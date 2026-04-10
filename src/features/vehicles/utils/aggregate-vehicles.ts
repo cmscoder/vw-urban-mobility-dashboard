@@ -3,6 +3,13 @@ import type {
   AggregatedRecord,
 } from '@/features/vehicles/types';
 
+/**
+ * Groups vehicle records by country and year, summing registration counts.
+ * Used by the dashboard to produce a scannable master view.
+ *
+ * @param records - Flat list of individual vehicle records.
+ * @returns One {@link AggregatedRecord} per unique country × year combination.
+ */
 export function aggregateByCountryYear(
   records: VehicleRecord[]
 ): AggregatedRecord[] {

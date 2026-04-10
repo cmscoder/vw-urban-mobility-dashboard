@@ -1,6 +1,10 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+/**
+ * Reusable form field that composes a Label + Input with consistent
+ * spacing, aria-required, and optional disabled state for locked fields.
+ */
 interface FormTextFieldProps {
   id: string;
   label: string;

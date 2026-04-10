@@ -2,6 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VehicleRecord, VehicleFormData } from '@/features/vehicles/types';
 
+/**
+ * Zustand store for vehicle records with localStorage persistence.
+ * Acts as the single source of truth for local CRUD after the initial
+ * Eurostat data is seeded (see ADR-002).
+ */
 interface VehicleStore {
   vehicles: VehicleRecord[];
   isSeeded: boolean;

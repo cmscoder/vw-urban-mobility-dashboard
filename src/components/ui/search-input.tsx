@@ -1,6 +1,11 @@
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
+/**
+ * Presentational search field with an icon and a clear button.
+ * Hides native WebKit clear controls to provide a single, consistent
+ * clear affordance. Debouncing is handled by the consumer, not here.
+ */
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
