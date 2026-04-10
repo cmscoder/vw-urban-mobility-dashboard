@@ -8,6 +8,7 @@ export type {
 export type {
   VehicleRecord,
   VehicleFormData,
+  AggregatedRecord,
   VehicleFilters,
   FilterOption,
 } from './vehicle.types';

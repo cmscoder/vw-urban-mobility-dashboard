@@ -11,6 +11,15 @@ export interface VehicleRecord {
 
 export type VehicleFormData = Omit<VehicleRecord, 'id' | 'source'>;
 
+export interface AggregatedRecord {
+  id: string;
+  country: string;
+  countryName: string;
+  year: string;
+  totalCount: number;
+  recordCount: number;
+}
+
 export interface VehicleFilters {
   country: string;
   year: string;

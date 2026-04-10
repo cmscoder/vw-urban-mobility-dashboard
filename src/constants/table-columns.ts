@@ -1,14 +1,24 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import type { VehicleRecord } from '@/types';
+import type { VehicleRecord, AggregatedRecord } from '@/types';
 
-const columnHelper = createColumnHelper<VehicleRecord>();
+const vehicleHelper = createColumnHelper<VehicleRecord>();
 
 export const vehicleColumns = [
-  columnHelper.accessor('country', { filterFn: 'equalsString' }),
-  columnHelper.accessor('countryName', { filterFn: 'equalsString' }),
-  columnHelper.accessor('year', { filterFn: 'equalsString' }),
-  columnHelper.accessor('motorEnergy', { filterFn: 'equalsString' }),
-  columnHelper.accessor('motorEnergyName', { filterFn: 'equalsString' }),
-  columnHelper.accessor('count', {}),
-  columnHelper.accessor('source', { filterFn: 'equalsString' }),
+  vehicleHelper.accessor('country', { filterFn: 'equalsString' }),
+  vehicleHelper.accessor('countryName', { filterFn: 'equalsString' }),
+  vehicleHelper.accessor('year', { filterFn: 'equalsString' }),
+  vehicleHelper.accessor('motorEnergy', { filterFn: 'equalsString' }),
+  vehicleHelper.accessor('motorEnergyName', { filterFn: 'equalsString' }),
+  vehicleHelper.accessor('count', {}),
+  vehicleHelper.accessor('source', { filterFn: 'equalsString' }),
+];
+
+const aggregatedHelper = createColumnHelper<AggregatedRecord>();
+
+export const aggregatedColumns = [
+  aggregatedHelper.accessor('country', { filterFn: 'equalsString' }),
+  aggregatedHelper.accessor('countryName', { filterFn: 'equalsString' }),
+  aggregatedHelper.accessor('year', { filterFn: 'equalsString' }),
+  aggregatedHelper.accessor('totalCount', {}),
+  aggregatedHelper.accessor('recordCount', {}),
 ];

@@ -36,60 +36,42 @@ export function TableHeaderFilters({
     yearOptions,
     'desktop'
   );
-  const sourceField = fields.find((f) => f.field === 'source');
+  const visibleFilters = fields.filter(
+    (f) => f.field === 'country' || f.field === 'year'
+  );
 
   return (
     <TableRow>
-      {fields
-        .filter((config) => config.field !== 'source')
-        .map((config) => (
-          <TableHead key={config.field} className="p-0">
-            <Select
-              value={filters[config.field]}
-              onValueChange={(v) => onFilterChange(config.field, v)}
-            >
-              <SelectTrigger
-                className={TRIGGER_CLASS}
-                aria-label={config.ariaLabel}
-              >
-                <SelectValue placeholder={config.allLabel} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{config.allLabel}</SelectItem>
-                {config.options.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </TableHead>
-        ))}
-      <TableHead className="text-right">Count</TableHead>
-      <TableHead className="p-0">
-        {sourceField && (
+      {visibleFilters.map((config) => (
+        <TableHead key={config.field} className="p-0">
           <Select
-            value={filters.source}
-            onValueChange={(v) => onFilterChange('source', v)}
+            value={filters[config.field]}
+            onValueChange={(v) => onFilterChange(config.field, v)}
           >
             <SelectTrigger
               className={TRIGGER_CLASS}
-              aria-label={sourceField.ariaLabel}
+              aria-label={config.ariaLabel}
             >
-              <SelectValue placeholder={sourceField.allLabel} />
+              <SelectValue placeholder={config.allLabel} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{sourceField.allLabel}</SelectItem>
-              {sourceField.options.map((opt) => (
+              <SelectItem value="all">{config.allLabel}</SelectItem>
+              {config.options.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        )}
+        </TableHead>
+      ))}
+      <TableHead className="px-4 py-3 text-right text-xs font-medium">
+        Total Count
       </TableHead>
-      <TableHead className="w-[60px]">
+      <TableHead className="px-4 py-3 text-xs font-medium">
+        Motor Types
+      </TableHead>
+      <TableHead className="w-[120px]">
         {hasActiveFilters ? (
           <Button
             variant="ghost"

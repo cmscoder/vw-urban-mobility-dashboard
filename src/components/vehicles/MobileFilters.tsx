@@ -81,7 +81,7 @@ export function MobileFilters({
     countryOptions,
     yearOptions,
     'mobile'
-  );
+  ).filter((f) => f.field === 'country' || f.field === 'year');
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>

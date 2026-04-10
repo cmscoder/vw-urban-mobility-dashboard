@@ -4,34 +4,31 @@ import { describe, it, expect, vi } from 'vitest';
 import { VehicleTable } from '../VehicleTable';
 import { EMPTY_FILTERS } from '@/constants';
 import type { Row } from '@tanstack/react-table';
-import type { VehicleRecord } from '@/types';
+import type { AggregatedRecord } from '@/types';
 
-const mockRecords: VehicleRecord[] = [
+const mockRecords: AggregatedRecord[] = [
   {
-    id: '1',
+    id: 'DE-2022',
     country: 'DE',
     countryName: 'Germany',
     year: '2022',
-    motorEnergy: 'ELC',
-    motorEnergyName: 'Electric',
-    count: 12345,
-    source: 'eurostat',
+    totalCount: 12345,
+    recordCount: 3,
   },
   {
-    id: '2',
+    id: 'FR-2023',
     country: 'FR',
     countryName: 'France',
     year: '2023',
-    motorEnergy: 'ELC_PET_HYB',
-    motorEnergyName: 'Hybrid Electric-Petrol',
-    count: null,
-    source: 'local',
+    totalCount: 0,
+    recordCount: 2,
   },
 ];
 
-function toRows(records: VehicleRecord[]): Row<VehicleRecord>[] {
+function toRows(records: AggregatedRecord[]): Row<AggregatedRecord>[] {
   return records.map(
-    (record, i) => ({ id: String(i), original: record }) as Row<VehicleRecord>
+    (record, i) =>
+      ({ id: String(i), original: record }) as Row<AggregatedRecord>
   );
 }
 
@@ -68,8 +65,7 @@ const defaultProps = {
   onFilterChange: vi.fn(),
   onFiltersClear: vi.fn(),
   pagination: mockPagination,
-  onEdit: vi.fn(),
-  onDelete: vi.fn(),
+  onViewDetails: vi.fn(),
 };
 
 function renderDesktop(ui: React.ReactElement) {
@@ -92,10 +88,6 @@ describe('VehicleTable — Desktop', () => {
 
     expect(desktop.getByLabelText('Filter by country')).toBeInTheDocument();
     expect(desktop.getByLabelText('Filter by year')).toBeInTheDocument();
-    expect(
-      desktop.getByLabelText('Filter by motor energy type')
-    ).toBeInTheDocument();
-    expect(desktop.getByLabelText('Filter by source')).toBeInTheDocument();
   });
 
   it('shows empty state when no records exist', () => {
@@ -115,65 +107,49 @@ describe('VehicleTable — Desktop', () => {
     expect(skeletons.length).toBeGreaterThan(1);
   });
 
-  it('renders vehicle records with formatted data', () => {
+  it('renders aggregated records with formatted data', () => {
     const { desktop } = renderDesktop(
       <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
     );
 
     expect(desktop.getByText('Germany')).toBeInTheDocument();
     expect(desktop.getByText('2022')).toBeInTheDocument();
-    expect(desktop.getByText('Electric')).toBeInTheDocument();
     expect(desktop.getByText('12,345')).toBeInTheDocument();
-    expect(desktop.getByText('Eurostat')).toBeInTheDocument();
+    expect(desktop.getByText('3 motor types')).toBeInTheDocument();
 
     expect(desktop.getByText('France')).toBeInTheDocument();
-    expect(desktop.getByText('Hybrid Electric-Petrol')).toBeInTheDocument();
-    expect(desktop.getByText('—')).toBeInTheDocument();
-    expect(desktop.getByText('Local')).toBeInTheDocument();
+    expect(desktop.getByText('2023')).toBeInTheDocument();
+    expect(desktop.getByText('2 motor types')).toBeInTheDocument();
   });
 
-  it('calls onEdit when Edit is clicked in the dropdown', async () => {
+  it('renders View Details button for each row', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(
+      desktop.getByLabelText('View details for Germany 2022')
+    ).toBeInTheDocument();
+    expect(
+      desktop.getByLabelText('View details for France 2023')
+    ).toBeInTheDocument();
+  });
+
+  it('calls onViewDetails when View Details is clicked', async () => {
     const user = userEvent.setup();
-    const onEdit = vi.fn();
+    const onViewDetails = vi.fn();
 
     const { desktop } = renderDesktop(
       <VehicleTable
         {...defaultProps}
         rows={toRows([mockRecords[0]])}
         isLoading={false}
-        onEdit={onEdit}
+        onViewDetails={onViewDetails}
       />
     );
 
-    const trigger = desktop.getByRole('button', { name: /actions/i });
-    await user.click(trigger);
-
-    const editItem = await screen.findByText('Edit');
-    await user.click(editItem);
-
-    expect(onEdit).toHaveBeenCalledWith(mockRecords[0]);
-  });
-
-  it('calls onDelete when Delete is clicked in the dropdown', async () => {
-    const user = userEvent.setup();
-    const onDelete = vi.fn();
-
-    const { desktop } = renderDesktop(
-      <VehicleTable
-        {...defaultProps}
-        rows={toRows([mockRecords[0]])}
-        isLoading={false}
-        onDelete={onDelete}
-      />
-    );
-
-    const trigger = desktop.getByRole('button', { name: /actions/i });
-    await user.click(trigger);
-
-    const deleteItem = await screen.findByText('Delete');
-    await user.click(deleteItem);
-
-    expect(onDelete).toHaveBeenCalledWith(mockRecords[0]);
+    await user.click(desktop.getByLabelText('View details for Germany 2022'));
+    expect(onViewDetails).toHaveBeenCalledWith(mockRecords[0]);
   });
 
   it('shows Clear button when hasActiveFilters is true', () => {
@@ -361,7 +337,7 @@ describe('VehicleTable — Mobile', () => {
     expect(mobile.getByText('No records found.')).toBeInTheDocument();
   });
 
-  it('renders vehicle cards with record data', () => {
+  it('renders aggregated cards with record data', () => {
     const { mobile } = renderMobile(
       <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
     );
@@ -369,40 +345,37 @@ describe('VehicleTable — Mobile', () => {
     expect(mobile.getByText('Germany')).toBeInTheDocument();
     expect(mobile.getByText('France')).toBeInTheDocument();
     expect(mobile.getByText('12,345')).toBeInTheDocument();
+    expect(mobile.getByText('3 motor types')).toBeInTheDocument();
   });
 
-  it('calls onEdit when edit button is clicked on a card', async () => {
+  it('renders View Details buttons on mobile cards', () => {
+    const { mobile } = renderMobile(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(
+      mobile.getByLabelText('View details for Germany 2022')
+    ).toBeInTheDocument();
+    expect(
+      mobile.getByLabelText('View details for France 2023')
+    ).toBeInTheDocument();
+  });
+
+  it('calls onViewDetails from a mobile card', async () => {
     const user = userEvent.setup();
-    const onEdit = vi.fn();
+    const onViewDetails = vi.fn();
 
     const { mobile } = renderMobile(
       <VehicleTable
         {...defaultProps}
         rows={toRows([mockRecords[0]])}
         isLoading={false}
-        onEdit={onEdit}
+        onViewDetails={onViewDetails}
       />
     );
 
-    await user.click(mobile.getByLabelText('Edit Germany'));
-    expect(onEdit).toHaveBeenCalledWith(mockRecords[0]);
-  });
-
-  it('calls onDelete when delete button is clicked on a card', async () => {
-    const user = userEvent.setup();
-    const onDelete = vi.fn();
-
-    const { mobile } = renderMobile(
-      <VehicleTable
-        {...defaultProps}
-        rows={toRows([mockRecords[0]])}
-        isLoading={false}
-        onDelete={onDelete}
-      />
-    );
-
-    await user.click(mobile.getByLabelText('Delete Germany'));
-    expect(onDelete).toHaveBeenCalledWith(mockRecords[0]);
+    await user.click(mobile.getByLabelText('View details for Germany 2022'));
+    expect(onViewDetails).toHaveBeenCalledWith(mockRecords[0]);
   });
 
   it('renders a search input', () => {

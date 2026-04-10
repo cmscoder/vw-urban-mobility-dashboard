@@ -1,29 +1,25 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { VehicleTable } from '@/components/vehicles/VehicleTable';
 import { VehicleFormDialog } from '@/components/vehicles/VehicleFormDialog';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useVehicles, useVehicleTable } from '@/hooks';
 import { useVehicleStore } from '@/stores';
-import type { VehicleFormData, VehicleRecord } from '@/types';
+import { aggregateByCountryYear } from '@/utils';
+import type { VehicleFormData, AggregatedRecord } from '@/types';
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { isLoading, isError, error } = useVehicles();
   const vehicles = useVehicleStore((state) => state.vehicles);
   const addRecord = useVehicleStore((state) => state.addRecord);
-  const updateRecord = useVehicleStore((state) => state.updateRecord);
-  const deleteRecord = useVehicleStore((state) => state.deleteRecord);
+
+  const aggregated = useMemo(
+    () => aggregateByCountryYear(vehicles),
+    [vehicles]
+  );
 
   const {
     table,
@@ -37,35 +33,19 @@ export function DashboardPage() {
     updateFilter,
     clearFilters,
     pagination,
-  } = useVehicleTable(vehicles);
+  } = useVehicleTable(aggregated);
 
   const rows = table.getRowModel().rows;
-  const visibleColumnsCount = table.getVisibleLeafColumns().length || 6;
+  const visibleColumnsCount = table.getVisibleLeafColumns().length || 5;
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<VehicleRecord | null>(
-    null
-  );
-  const [deletingRecord, setDeletingRecord] = useState<VehicleRecord | null>(
-    null
-  );
 
   function handleCreate(data: VehicleFormData) {
     addRecord(data);
   }
 
-  function handleEdit(data: VehicleFormData) {
-    if (editingRecord) {
-      updateRecord(editingRecord.id, data);
-      setEditingRecord(null);
-    }
-  }
-
-  function handleConfirmDelete() {
-    if (deletingRecord) {
-      deleteRecord(deletingRecord.id);
-      setDeletingRecord(null);
-    }
+  function handleViewDetails(record: AggregatedRecord) {
+    navigate(`/vehicles/${record.country}/${record.year}`);
   }
 
   return (
@@ -90,7 +70,7 @@ export function DashboardPage() {
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {isLoading
             ? 'Loading...'
-            : `${pagination.filteredTotal} of ${vehicles.length} records`}
+            : `${pagination.filteredTotal} of ${aggregated.length} records`}
         </p>
 
         <VehicleTable
@@ -108,8 +88,7 @@ export function DashboardPage() {
           isLoading={isLoading}
           columnsCount={visibleColumnsCount}
           skeletonCardCount={6}
-          onEdit={(record) => setEditingRecord(record)}
-          onDelete={(record) => setDeletingRecord(record)}
+          onViewDetails={handleViewDetails}
         />
       </main>
 
@@ -118,39 +97,6 @@ export function DashboardPage() {
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
       />
-
-      <VehicleFormDialog
-        open={!!editingRecord}
-        onOpenChange={(open) => !open && setEditingRecord(null)}
-        onSubmit={handleEdit}
-        record={editingRecord}
-      />
-
-      <AlertDialog
-        open={!!deletingRecord}
-        onOpenChange={(open) => !open && setDeletingRecord(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this record?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently remove the record for{' '}
-              <strong>{deletingRecord?.countryName}</strong> —{' '}
-              {deletingRecord?.motorEnergyName} ({deletingRecord?.year}). This
-              action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

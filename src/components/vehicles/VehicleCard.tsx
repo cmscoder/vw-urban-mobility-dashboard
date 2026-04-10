@@ -1,17 +1,16 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SourceBadge } from '@/components/vehicles/SourceBadge';
 import { formatCount } from '@/utils';
-import type { VehicleRecord } from '@/types';
+import type { AggregatedRecord } from '@/types';
 
 interface VehicleCardProps {
-  record: VehicleRecord;
-  onEdit: (record: VehicleRecord) => void;
-  onDelete: (record: VehicleRecord) => void;
+  record: AggregatedRecord;
+  onViewDetails: (record: AggregatedRecord) => void;
 }
 
-export function VehicleCard({ record, onEdit, onDelete }: VehicleCardProps) {
+export function VehicleCard({ record, onViewDetails }: VehicleCardProps) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -20,46 +19,33 @@ export function VehicleCard({ record, onEdit, onDelete }: VehicleCardProps) {
             <p className="font-medium leading-none">{record.countryName}</p>
             <p className="text-xs text-muted-foreground">{record.country}</p>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onEdit(record)}
-              aria-label={`Edit ${record.countryName}`}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive"
-              onClick={() => onDelete(record)}
-              aria-label={`Delete ${record.countryName}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <Badge variant="secondary">
+            {record.recordCount} motor{' '}
+            {record.recordCount === 1 ? 'type' : 'types'}
+          </Badge>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+        <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div>
             <p className="text-xs text-muted-foreground">Year</p>
             <p>{record.year}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Motor Energy</p>
-            <p className="truncate">{record.motorEnergyName}</p>
-          </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">Count</p>
-            <p className="font-medium">{formatCount(record.count)}</p>
+            <p className="text-xs text-muted-foreground">Total Vehicles</p>
+            <p className="font-medium">{formatCount(record.totalCount)}</p>
           </div>
         </div>
 
-        <div className="mt-3">
-          <SourceBadge source={record.source} />
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-3 w-full gap-1.5"
+          onClick={() => onViewDetails(record)}
+          aria-label={`View details for ${record.countryName} ${record.year}`}
+        >
+          <Eye className="h-4 w-4" />
+          View Details
+        </Button>
       </CardContent>
     </Card>
   );

@@ -17,10 +17,10 @@ import {
   type PaginationInfo,
 } from '@/components/vehicles/TablePagination';
 import type { Row } from '@tanstack/react-table';
-import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
+import type { VehicleFilters, AggregatedRecord, FilterOption } from '@/types';
 
 interface VehicleTableProps {
-  rows: Row<VehicleRecord>[];
+  rows: Row<AggregatedRecord>[];
   filters: VehicleFilters;
   searchQuery: string;
   onSearchChange: (value: string) => void;
@@ -35,8 +35,7 @@ interface VehicleTableProps {
   columnsCount?: number;
   skeletonRowCount?: number;
   skeletonCardCount?: number;
-  onEdit: (record: VehicleRecord) => void;
-  onDelete: (record: VehicleRecord) => void;
+  onViewDetails: (record: AggregatedRecord) => void;
 }
 
 export function VehicleTable({
@@ -52,11 +51,10 @@ export function VehicleTable({
   onFiltersClear,
   pagination,
   isLoading,
-  columnsCount = 6,
+  columnsCount = 5,
   skeletonRowCount = 8,
   skeletonCardCount = 6,
-  onEdit,
-  onDelete,
+  onViewDetails,
 }: VehicleTableProps) {
   const emptyState = (
     <p className="py-12 text-center text-sm text-muted-foreground">
@@ -93,8 +91,7 @@ export function VehicleTable({
               <VehicleCard
                 key={row.id}
                 record={row.original}
-                onEdit={onEdit}
-                onDelete={onDelete}
+                onViewDetails={onViewDetails}
               />
             ))
           )}
@@ -143,8 +140,7 @@ export function VehicleTable({
                   <VehicleTableRow
                     key={row.id}
                     record={row.original}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
+                    onViewDetails={onViewDetails}
                   />
                 ))
               )}

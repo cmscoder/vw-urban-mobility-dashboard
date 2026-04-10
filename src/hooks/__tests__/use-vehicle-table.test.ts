@@ -2,43 +2,46 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { useVehicleTable } from '../use-vehicle-table';
 import { EMPTY_FILTERS } from '@/constants';
-import type { VehicleRecord } from '@/types';
+import type { AggregatedRecord } from '@/types';
 
-function createRecord(overrides: Partial<VehicleRecord> = {}): VehicleRecord {
+function createAggregated(
+  overrides: Partial<AggregatedRecord> = {}
+): AggregatedRecord {
   return {
-    id: '1',
+    id: 'DE-2022',
     country: 'DE',
     countryName: 'Germany',
     year: '2022',
-    motorEnergy: 'ELC',
-    motorEnergyName: 'Electricity',
-    count: 1000,
-    source: 'eurostat',
+    totalCount: 5000,
+    recordCount: 3,
     ...overrides,
   };
 }
 
-const mockData: VehicleRecord[] = [
-  createRecord({
-    id: '1',
+const mockData: AggregatedRecord[] = [
+  createAggregated({
+    id: 'DE-2022',
     country: 'DE',
     countryName: 'Germany',
     year: '2022',
   }),
-  createRecord({ id: '2', country: 'FR', countryName: 'France', year: '2023' }),
-  createRecord({
-    id: '3',
+  createAggregated({
+    id: 'FR-2023',
+    country: 'FR',
+    countryName: 'France',
+    year: '2023',
+  }),
+  createAggregated({
+    id: 'DE-2023',
     country: 'DE',
     countryName: 'Germany',
     year: '2023',
   }),
-  createRecord({
-    id: '4',
+  createAggregated({
+    id: 'ES-2022',
     country: 'ES',
     countryName: 'Spain',
     year: '2022',
-    motorEnergy: 'HYB',
-    motorEnergyName: 'Hybrid',
   }),
 ];
 
@@ -181,9 +184,10 @@ describe('useVehicleTable', () => {
 
   describe('pagination', () => {
     const manyRecords = Array.from({ length: 50 }, (_, i) =>
-      createRecord({
-        id: String(i),
-        country: 'DE',
+      createAggregated({
+        id: `C${i}-${2020 + (i % 3)}`,
+        country: `C${i}`,
+        countryName: `Country ${i}`,
         year: String(2020 + (i % 3)),
       })
     );

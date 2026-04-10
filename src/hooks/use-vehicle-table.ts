@@ -3,13 +3,19 @@ import {
   useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
+  getSortedRowModel,
   getPaginationRowModel,
   type ColumnFiltersState,
+  type SortingState,
   type PaginationState,
 } from '@tanstack/react-table';
 import { useDebounce } from 'use-debounce';
-import { EMPTY_FILTERS, DEFAULT_PAGE_SIZE, vehicleColumns } from '@/constants';
-import type { VehicleFilters, VehicleRecord, FilterOption } from '@/types';
+import {
+  EMPTY_FILTERS,
+  DEFAULT_PAGE_SIZE,
+  aggregatedColumns,
+} from '@/constants';
+import type { VehicleFilters, AggregatedRecord, FilterOption } from '@/types';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -25,8 +31,14 @@ function columnFiltersToFilters(
   return result;
 }
 
-export function useVehicleTable(data: VehicleRecord[]) {
+const DEFAULT_SORTING: SortingState = [
+  { id: 'year', desc: true },
+  { id: 'countryName', desc: false },
+];
+
+export function useVehicleTable(data: AggregatedRecord[]) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch] = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -36,12 +48,19 @@ export function useVehicleTable(data: VehicleRecord[]) {
 
   const table = useReactTable({
     data,
-    columns: vehicleColumns,
-    state: { columnFilters, globalFilter: debouncedSearch, pagination },
+    columns: aggregatedColumns,
+    state: {
+      columnFilters,
+      sorting,
+      globalFilter: debouncedSearch,
+      pagination,
+    },
     onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     autoResetPageIndex: true,
   });
