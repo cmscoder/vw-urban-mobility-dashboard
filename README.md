@@ -50,6 +50,17 @@ As part of the **AI-First Engineering** approach, this project's infrastructure 
 
 **Key takeaway:** AI is a powerful accelerator for implementation, but architectural decisions, quality standards, and UX judgment must come from the engineer. I treated AI as a pair programmer, not an autopilot.
 
+### Prompt Engineering Strategies
+
+Throughout the project, I iterated on how I communicated with AI to get better results:
+
+- **Step-by-step with approval gates:** Instead of asking AI to build an entire feature at once, I used prompts like _"go step by step, explain everything, and wait for me to approve before moving on."_ This kept changes small, reviewable, and easy to revert if needed.
+- **Scoped context-setting:** Before complex refactors, I provided tight scope and explicit task lists. For example: _"Context: I ONLY want to change how data is displayed in the main table. Task: 1) Aggregate by country and year. 2) Replace Edit/Delete with View Details. 3) Ensure mobile cards work."_ This prevented AI from making unrelated changes.
+- **Quality constraints upfront:** I opened every feature with _"remember to keep the same pattern, clean code, SOLID principles"_ — framing the AI's output quality from the start rather than fixing it after the fact.
+- **Cross-AI validation:** I used Gemini Pro as a second opinion on architecture and UX decisions made with Claude. This helped me weigh different perspectives before committing to an approach — especially for product-level decisions like the "1+N" data entry pattern and the master-detail navigation.
+- **Challenging AI-generated complexity:** The `transformResponse` function for the Eurostat JSON-stat format was initially generated with deeply nested `for` loops and `if` chains. I questioned the AI: _"why is this so complex?"_ and iterated until the logic was cleaner and more readable. Understanding _what_ the code does — not just that it works — is essential when you own it.
+- **Directing architecture, not just code:** I didn't just ask AI to "add debounce" — I told it _where_ it should live (the hook, not the component) because I knew a reusable UI component shouldn't contain business logic. Similarly, I told AI to remove `"use client"` directives because I understood they're a Next.js RSC pattern, not applicable in a Vite SPA.
+
 ---
 
 ## 🛡️ Post-Mortem: Infrastructure & Environment Stability
@@ -146,9 +157,9 @@ The project follows lightweight ADRs directly in this README to document _why_ k
 ### ADR-004: Responsive data visualization pattern
 
 - **Status:** Accepted
-- **Context:** Dense desktop tables create poor UX on mobile screens.
-- **Decision:** Use a **dual responsive pattern**: desktop table (`md+`) and mobile cards (`<md`), with mobile filters inside a bottom sheet (`Drawer`/`vaul`).
-- **Consequences:** Better mobile readability and touch usability; requires maintaining two presentation layouts over the same row model.
+- **Context:** Dense desktop tables create poor UX on mobile screens — columns get squeezed, text overflows, and touch targets become too small.
+- **Decision:** Use a **dual responsive pattern**: a full data table on desktop (`md+`) and **card-based layout** on mobile (`<md`). Cards are the modern standard for mobile data display — each record gets its own vertical card with readable typography and large touch targets. Mobile filters are housed inside a bottom sheet (`Drawer`/`vaul`) to save screen real estate. **Pagination over infinite scroll** was a deliberate choice: in a data-driven dashboard, users need to know exactly how many records exist and where they are in the dataset. Infinite scroll is suited for content feeds (social media), not for informational pages where users scan, compare, and navigate with intent.
+- **Consequences:** Better mobile readability and touch usability; pagination gives users a sense of position and control. The trade-off is maintaining two presentation layouts (table + cards) over the same row model, but TanStack Table's headless architecture makes this manageable since both layouts consume the same data and state.
 
 ### ADR-005: UI system and styling strategy
 
