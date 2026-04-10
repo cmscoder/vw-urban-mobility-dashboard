@@ -2,13 +2,16 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { VehicleTable } from '@/components/vehicles/VehicleTable';
-import { VehicleFormDialog } from '@/components/vehicles/VehicleFormDialog';
 import { Button } from '@/components/ui/button';
-import { useVehicles, useVehicleTable } from '@/hooks';
-import { useVehicleStore } from '@/stores';
-import { aggregateByCountryYear } from '@/utils';
-import type { VehicleFormData, AggregatedRecord } from '@/types';
+import {
+  VehicleTable,
+  VehicleFormDialog,
+  useVehicles,
+  useVehicleTable,
+  useVehicleStore,
+  aggregateByCountryYear,
+} from '@/features/vehicles';
+import type { VehicleFormData, AggregatedRecord } from '@/features/vehicles';
 
 export function DashboardPage() {
   const navigate = useNavigate();

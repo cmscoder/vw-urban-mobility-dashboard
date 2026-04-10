@@ -2,10 +2,6 @@ import { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { MotorEnergyBarChart } from '@/components/charts/MotorEnergyBarChart';
-import { MotorEnergyPieChart } from '@/components/charts/MotorEnergyPieChart';
-import { VehicleFormDialog } from '@/components/vehicles/VehicleFormDialog';
-import { SourceBadge } from '@/components/vehicles/SourceBadge';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -26,9 +22,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useVehicleStore } from '@/stores';
-import { formatCount, buildChartData } from '@/utils';
-import type { VehicleFormData, VehicleRecord } from '@/types';
+import {
+  MotorEnergyBarChart,
+  MotorEnergyPieChart,
+  VehicleFormDialog,
+  SourceBadge,
+  useVehicleStore,
+  formatCount,
+  buildChartData,
+} from '@/features/vehicles';
+import type { VehicleFormData, VehicleRecord } from '@/features/vehicles';
 
 export function VehicleDetailPage() {
   const { country, year } = useParams<{ country: string; year: string }>();
