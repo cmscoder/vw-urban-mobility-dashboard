@@ -52,6 +52,7 @@ A professional **GitHub Actions** pipeline acts as a quality gate for every cont
 
 ## 🎨 Code Quality & Style
 
+- **TypeScript Strict Mode:** `strict: true` is enabled in `tsconfig.app.json`, activating `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, and all other strict flags. This catches null/undefined issues at compile time rather than at runtime.
 - **ESLint 9:** Configured with the modern **Flat Config** system, integrating `typescript-eslint` and `prettier` directly into the linting pipeline.
 - **UI Primitives:** **Shadcn UI** has been initialized as the base component library to ensure accessibility (Radix UI) and design consistency.
 

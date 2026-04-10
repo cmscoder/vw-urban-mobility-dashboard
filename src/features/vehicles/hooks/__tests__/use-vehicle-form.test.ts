@@ -45,13 +45,18 @@ describe('useVehicleForm', () => {
     it('resets to empty form when re-opened without a record', () => {
       const { result, rerender } = renderHook(
         ({ open, record }) => useVehicleForm(open, record),
-        { initialProps: { open: true, record: mockRecord } }
+        {
+          initialProps: {
+            open: true,
+            record: mockRecord as VehicleRecord | null,
+          },
+        }
       );
 
       expect(result.current.form.country).toBe('DE');
 
-      rerender({ open: false, record: undefined });
-      rerender({ open: true, record: undefined });
+      rerender({ open: false, record: null });
+      rerender({ open: true, record: null });
 
       expect(result.current.form).toEqual(EMPTY_FORM);
     });
@@ -66,12 +71,17 @@ describe('useVehicleForm', () => {
 
       const { result, rerender } = renderHook(
         ({ open, record }) => useVehicleForm(open, record),
-        { initialProps: { open: true, record: mockRecord } }
+        {
+          initialProps: {
+            open: true,
+            record: mockRecord as VehicleRecord | null,
+          },
+        }
       );
 
       expect(result.current.form.country).toBe('DE');
 
-      rerender({ open: false, record: undefined });
+      rerender({ open: false, record: null });
       rerender({ open: true, record: otherRecord });
 
       expect(result.current.form.country).toBe('FR');

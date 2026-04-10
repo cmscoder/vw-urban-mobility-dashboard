@@ -45,7 +45,10 @@ export function MotorEnergyBarChart({ data }: MotorEnergyBarChartProps) {
               tickLine={false}
             />
             <Tooltip
-              formatter={(value: number) => [formatCount(value), 'Vehicles']}
+              formatter={(value) => [
+                formatCount(Number(value ?? 0)),
+                'Vehicles',
+              ]}
               contentStyle={{
                 borderRadius: '8px',
                 border: '1px solid hsl(var(--border))',
