@@ -228,8 +228,31 @@ pnpm install
 
 > **Windows users:** ensure PowerShell execution policy is set to `RemoteSigned` if scripts are blocked.
 
-### 💻 Development Commands
+### 💻 Development commands
 
-- **Dev Server:** `pnpm dev`
-- **Run Tests:** `pnpm test`
-- **Lint & Fix:** `pnpm lint --fix`
+| Command            | Description                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| `pnpm dev`         | Start the **Vite** dev server with HMR (default: [http://localhost:5173](http://localhost:5173)). |
+| `pnpm build`       | **Typecheck** (`tsc -b`) then **production bundle** (`vite build`). Same steps as CI.             |
+| `pnpm preview`     | Serve the **production build** locally (run `pnpm build` first).                                  |
+| `pnpm test`        | Run the **Vitest** suite once (`vitest run`).                                                     |
+| `pnpm lint`        | Run **ESLint** on the repo (`eslint .`). For auto-fixes: `pnpm exec eslint --fix .`               |
+| `pnpm exec tsc -b` | **Typecheck only** (faster than a full build when you only need the compiler).                    |
+
+**Minimal flow after clone:**
+
+```bash
+pnpm install
+pnpm dev
+```
+
+**Before a commit or PR** (matches local expectations with CI):
+
+```bash
+pnpm exec tsc -b --force
+pnpm lint
+pnpm test
+pnpm build
+```
+
+**Runtime:** use **Node.js LTS** (20.x or 22.x); see **Strategic Engineering Decisions** in the Post-Mortem section.
