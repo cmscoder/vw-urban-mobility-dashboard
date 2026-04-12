@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const VehicleDetailPage = lazy(() => import('@/pages/VehicleDetailPage'));
@@ -8,13 +9,7 @@ const VehicleDetailPage = lazy(() => import('@/pages/VehicleDetailPage'));
 function App() {
   return (
     <ErrorBoundary>
-      <Suspense
-        fallback={
-          <div className="flex min-h-screen items-center justify-center">
-            <div className="text-muted-foreground text-sm">Loading…</div>
-          </div>
-        }
-      >
+      <Suspense fallback={<LoadingSpinner fullScreen />}>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route
