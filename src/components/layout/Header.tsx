@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Car } from 'lucide-react';
 
 interface HeaderProps {
@@ -6,18 +7,18 @@ interface HeaderProps {
 
 export function Header({ children }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between border-b px-6 py-4">
-      <div className="flex items-center gap-3">
-        <Car className="h-6 w-6 text-primary" />
+    <header className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <Link to="/" className="flex items-center gap-3 hover:opacity-80">
+        <Car className="h-6 w-6 shrink-0 text-primary" />
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
             Urban Mobility Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground sm:text-sm">
             EU Vehicle Fleet — Electric & Hybrid Registrations
           </p>
         </div>
-      </div>
+      </Link>
       {children}
     </header>
   );
