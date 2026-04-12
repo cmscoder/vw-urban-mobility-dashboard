@@ -1,8 +1,20 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, RotateCcw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   VehicleTable,
   VehicleFormDialog,
@@ -18,6 +30,7 @@ export default function DashboardPage() {
   const { isLoading, isError, error } = useVehicles();
   const vehicles = useVehicleStore((state) => state.vehicles);
   const addRecord = useVehicleStore((state) => state.addRecord);
+  const resetData = useVehicleStore((state) => state.resetData);
 
   const aggregated = useMemo(
     () => aggregateByCountryYear(vehicles),
@@ -42,9 +55,22 @@ export default function DashboardPage() {
   const visibleColumnsCount = table.getVisibleLeafColumns().length || 5;
 
   const [formOpen, setFormOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   function handleCreate(data: VehicleFormData) {
-    addRecord(data);
+    try {
+      addRecord(data);
+      toast.success('Record added successfully.');
+      navigate(`/vehicles/${data.country}/${data.year}`);
+    } catch {
+      toast.error('Failed to add record.');
+    }
+  }
+
+  function handleConfirmReset() {
+    resetData();
+    setResetDialogOpen(false);
+    toast.success('Data reset to original Eurostat records.');
   }
 
   function handleViewDetails(record: AggregatedRecord) {
@@ -54,10 +80,25 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Record
-        </Button>
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={() => setResetDialogOpen(true)}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Reset Data
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={() => setFormOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Record
+          </Button>
+        </div>
       </Header>
 
       <main className="mx-auto max-w-7xl space-y-4 px-4 py-4 sm:px-6 sm:py-6">
@@ -70,11 +111,13 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground" aria-live="polite">
-          {isLoading
-            ? 'Loading...'
-            : `${pagination.filteredTotal} of ${aggregated.length} records`}
-        </p>
+        {isLoading ? (
+          <LoadingSpinner message="Loading vehicle data…" />
+        ) : (
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {pagination.filteredTotal} of {aggregated.length} records
+          </p>
+        )}
 
         <VehicleTable
           rows={rows}
@@ -100,6 +143,25 @@ export default function DashboardPage() {
         onOpenChange={setFormOpen}
         onSubmit={handleCreate}
       />
+
+      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset data to Eurostat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This clears every local change (added, edited, or deleted records)
+              and reloads the dataset from the Eurostat API. Your dashboard will
+              match the original response again. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReset}>
+              Reset to original data
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
