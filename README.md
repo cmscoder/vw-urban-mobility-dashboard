@@ -107,6 +107,14 @@ A professional **GitHub Actions** pipeline acts as a quality gate for every cont
 
 ---
 
+## 🧩 Trade-offs & future improvements
+
+- **Vehicle form validation:** The create/edit dialog uses **controlled React state** via `useVehicleForm`, with shared rules in `vehicle-form.ts` (`isFormValid`, `isFormYearValid`, `getMinVehicleFormYear`, `getMaxVehicleFormYear`). The **year must be a four-digit value between 2018 and the current calendar year** — 2018 is the same **`EUROSTAT_SINCE_YEAR`** lower bound as the Eurostat query (`sinceTimePeriod`), so local rows stay comparable to seeded API data and years like 1994 cannot be saved. The same validation runs in **`useVehicleStore` (`addRecord` / `updateRecord`)** so invalid payloads are not persisted if anything bypasses the UI.
+- **Why not React Hook Form + Zod (for now):** For this project’s scope, that stack would add dependencies and a structural refactor without changing end-user behavior. The current approach stays small, readable, and appropriate for a time-boxed challenge.
+- **Likely evolution:** If the app gained many forms, cross-field async rules, or a first-party API, adopting **Zod** (and optionally **React Hook Form** with Shadcn’s `Form` primitives) would be a natural upgrade: one schema for rules, clearer per-field errors, and—when the backend is Node—potential to **share** the same schema between client and server.
+
+---
+
 ## 🔒 Pre-Commit Quality Gate (Husky + lint-staged)
 
 To prevent non-compliant code from ever reaching the repository, every `git commit` is intercepted by a **Husky** pre-commit hook that runs two checks automatically:

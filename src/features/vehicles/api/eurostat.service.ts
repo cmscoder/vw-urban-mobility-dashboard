@@ -1,4 +1,5 @@
 import { httpClient } from './http-client';
+import { EUROSTAT_SINCE_YEAR } from '@/features/vehicles/constants';
 import type {
   EurostatResponse,
   EurostatQueryParams,
@@ -21,7 +22,7 @@ const DEFAULT_PARAMS: EurostatQueryParams = {
   lang: 'EN',
   unit: 'NR',
   geoLevel: 'country',
-  sinceTimePeriod: '2018',
+  sinceTimePeriod: String(EUROSTAT_SINCE_YEAR),
 };
 
 export async function fetchVehicleData(

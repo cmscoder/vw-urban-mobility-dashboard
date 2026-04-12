@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useVehicleForm } from '../use-vehicle-form';
 import { EMPTY_FORM } from '@/features/vehicles/constants';
 import type { VehicleRecord } from '@/features/vehicles/types';
@@ -157,6 +157,42 @@ describe('useVehicleForm', () => {
       });
 
       expect(result.current.form.countryName).toBe('Spain');
+    });
+  });
+
+  describe('year validation', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-04-01T12:00:00Z'));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('is invalid when year is in the future', () => {
+      const { result } = renderHook(() => useVehicleForm(true));
+
+      act(() => {
+        result.current.updateCountrySelection('DE', 'Germany');
+        result.current.updateField('year', '2030');
+        result.current.updateMotorEnergy('ELC');
+        result.current.updateCount('10');
+      });
+
+      expect(result.current.isValid).toBe(false);
+    });
+
+    it('is invalid when year is before 2018', () => {
+      const { result } = renderHook(() => useVehicleForm(true));
+
+      act(() => {
+        result.current.updateCountrySelection('DE', 'Germany');
+        result.current.updateField('year', '1994');
+        result.current.updateMotorEnergy('ELC');
+        result.current.updateCount('10');
+      });
+
+      expect(result.current.isValid).toBe(false);
     });
   });
 });

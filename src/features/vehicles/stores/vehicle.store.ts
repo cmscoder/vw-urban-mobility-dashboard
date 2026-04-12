@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VehicleRecord, VehicleFormData } from '@/features/vehicles/types';
+import { isFormValid } from '@/features/vehicles/utils/vehicle-form';
 
 /**
  * Zustand store for vehicle records with localStorage persistence.
@@ -33,6 +34,9 @@ export const useVehicleStore = create<VehicleStore>()(
       },
 
       addRecord: (data) => {
+        if (!isFormValid(data)) {
+          throw new Error('Invalid vehicle record');
+        }
         const record: VehicleRecord = {
           ...data,
           id: crypto.randomUUID(),
@@ -42,6 +46,9 @@ export const useVehicleStore = create<VehicleStore>()(
       },
 
       updateRecord: (id, data) => {
+        if (!isFormValid(data)) {
+          throw new Error('Invalid vehicle record');
+        }
         set((state) => ({
           vehicles: state.vehicles.map((r) =>
             r.id === id ? { ...r, ...data, source: 'local' } : r

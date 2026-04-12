@@ -11,6 +11,11 @@ import { FormTextField } from '@/components/ui/form-text-field';
 import { MotorEnergySelect } from '@/features/vehicles/components/MotorEnergySelect';
 import { CountryCombobox } from '@/features/vehicles/components/CountryCombobox';
 import { useVehicleForm } from '@/features/vehicles/hooks';
+import {
+  getMaxVehicleFormYear,
+  getMinVehicleFormYear,
+  isFormYearValid,
+} from '@/features/vehicles/utils';
 import type { VehicleFormData, VehicleRecord } from '@/features/vehicles/types';
 
 interface LockedFields {
@@ -46,8 +51,14 @@ export function VehicleFormDialog({
     updateCount,
   } = useVehicleForm(open, record, lockedFields);
 
+  const minYear = getMinVehicleFormYear();
+  const maxYear = getMaxVehicleFormYear();
+  const yearInvalid =
+    !hasLockedFields && form.year.trim() !== '' && !isFormYearValid(form.year);
+
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!isValid) return;
     onSubmit(form);
     onOpenChange(false);
   }
@@ -81,15 +92,25 @@ export function VehicleFormDialog({
           />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormTextField
-              id="year"
-              label="Year"
-              placeholder="2024"
-              maxLength={4}
-              value={form.year}
-              onChange={(v) => updateField('year', v)}
-              disabled={hasLockedFields}
-            />
+            <div className="space-y-1">
+              <FormTextField
+                id="year"
+                label="Year"
+                type="number"
+                placeholder="2024"
+                value={form.year}
+                onChange={(v) => updateField('year', v)}
+                min={minYear}
+                max={maxYear}
+                disabled={hasLockedFields}
+              />
+              {yearInvalid ? (
+                <p className="text-xs text-destructive" role="alert">
+                  Year must be between {minYear} and {maxYear} (same range as
+                  the Eurostat dataset).
+                </p>
+              ) : null}
+            </div>
             <FormTextField
               id="count"
               label="Vehicle Count"

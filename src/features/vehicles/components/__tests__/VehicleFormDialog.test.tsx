@@ -65,7 +65,7 @@ describe('VehicleFormDialog', () => {
     const combobox = screen.getByRole('combobox', { name: 'Select country' });
     expect(combobox).toHaveTextContent('Germany');
     expect(combobox).toHaveTextContent('DE');
-    expect(screen.getByLabelText('Year')).toHaveValue('2022');
+    expect(screen.getByLabelText('Year')).toHaveValue(2022);
     expect(screen.getByLabelText('Vehicle Count')).toHaveValue(5000);
   });
 
@@ -109,8 +109,9 @@ describe('VehicleFormDialog', () => {
     const year = screen.getByLabelText('Year');
     const count = screen.getByLabelText('Vehicle Count');
 
+    await user.clear(year);
     await user.type(year, '2023');
-    expect(year).toHaveValue('2023');
+    expect(year).toHaveValue(2023);
 
     await user.type(count, '999');
     expect(count).toHaveValue(999);

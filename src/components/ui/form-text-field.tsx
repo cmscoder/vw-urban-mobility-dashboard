@@ -13,6 +13,8 @@ interface FormTextFieldProps {
   onChange: (value: string) => void;
   type?: 'text' | 'number';
   maxLength?: number;
+  min?: number;
+  max?: number;
   disabled?: boolean;
 }
 
@@ -24,6 +26,8 @@ export function FormTextField({
   onChange,
   type = 'text',
   maxLength,
+  min,
+  max,
   disabled,
 }: FormTextFieldProps) {
   return (
@@ -34,6 +38,8 @@ export function FormTextField({
         type={type}
         placeholder={placeholder}
         maxLength={maxLength}
+        min={min}
+        max={max}
         aria-required="true"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
