@@ -19,6 +19,11 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Top-level error boundary that catches unhandled React errors and
+ * displays a user-friendly recovery UI with "Refresh" and "Try Again" actions.
+ * Logs the error and component stack to the console for debugging.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);

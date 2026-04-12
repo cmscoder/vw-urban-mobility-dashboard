@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useVehicleStore } from '../vehicle.store';
 import type { VehicleRecord } from '@/features/vehicles/types';
 
@@ -68,6 +68,46 @@ describe('vehicle store', () => {
       expect(added.country).toBe('ES');
       expect(added.id).toBeDefined();
     });
+
+    it('throws when year is in the future', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-04-01T12:00:00Z'));
+      try {
+        useVehicleStore.getState().seed(mockRecords);
+
+        expect(() =>
+          useVehicleStore.getState().addRecord({
+            country: 'ES',
+            countryName: 'Spain',
+            year: '2099',
+            motorEnergy: 'ELC',
+            motorEnergyName: 'Electricity',
+            count: 300,
+          })
+        ).toThrow('Invalid vehicle record');
+
+        expect(useVehicleStore.getState().vehicles).toHaveLength(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('throws when year is before 2018', () => {
+      useVehicleStore.getState().seed(mockRecords);
+
+      expect(() =>
+        useVehicleStore.getState().addRecord({
+          country: 'ES',
+          countryName: 'Spain',
+          year: '1994',
+          motorEnergy: 'ELC',
+          motorEnergyName: 'Electricity',
+          count: 300,
+        })
+      ).toThrow('Invalid vehicle record');
+
+      expect(useVehicleStore.getState().vehicles).toHaveLength(2);
+    });
   });
 
   describe('updateRecord', () => {
@@ -120,6 +160,32 @@ describe('vehicle store', () => {
         .getState()
         .vehicles.find((r) => r.id === 'FR-ELC-2022');
       expect(france?.count).toBe(2000);
+    });
+
+    it('throws when update sets year to the future', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-04-01T12:00:00Z'));
+      try {
+        useVehicleStore.getState().seed(mockRecords);
+
+        expect(() =>
+          useVehicleStore.getState().updateRecord('DE-ELC-2022', {
+            country: 'DE',
+            countryName: 'Germany',
+            year: '2099',
+            motorEnergy: 'ELC',
+            motorEnergyName: 'Electricity',
+            count: 1000,
+          })
+        ).toThrow('Invalid vehicle record');
+
+        const unchanged = useVehicleStore
+          .getState()
+          .vehicles.find((r) => r.id === 'DE-ELC-2022');
+        expect(unchanged?.year).toBe('2022');
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

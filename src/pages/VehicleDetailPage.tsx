@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,9 +32,10 @@ import {
   formatCount,
   buildChartData,
 } from '@/features/vehicles';
+import { getCountryFlag } from '@/features/vehicles/constants';
 import type { VehicleFormData, VehicleRecord } from '@/features/vehicles';
 
-export function VehicleDetailPage() {
+export default function VehicleDetailPage() {
   const { country, year } = useParams<{ country: string; year: string }>();
   const navigate = useNavigate();
 
@@ -48,8 +50,27 @@ export function VehicleDetailPage() {
   );
 
   const countryName = records[0]?.countryName ?? country;
+  const countryFlag = useMemo(
+    () => (country ? getCountryFlag(country) : ''),
+    [country]
+  );
   const totalCount = records.reduce((sum, r) => sum + (r.count ?? 0), 0);
-  const chartData = useMemo(() => buildChartData(records), [records]);
+
+  const eurostatRecords = useMemo(
+    () => records.filter((r) => r.source === 'eurostat'),
+    [records]
+  );
+  const localRecords = useMemo(
+    () => records.filter((r) => r.source === 'local'),
+    [records]
+  );
+  const hasLocalData = localRecords.length > 0;
+
+  const [showLocal, setShowLocal] = useState(false);
+  const chartData = useMemo(
+    () => buildChartData(showLocal ? localRecords : eurostatRecords),
+    [showLocal, localRecords, eurostatRecords]
+  );
 
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<VehicleRecord | null>(
@@ -69,20 +90,35 @@ export function VehicleDetailPage() {
   );
 
   function handleCreate(data: VehicleFormData) {
-    addRecord(data);
+    try {
+      addRecord(data);
+      toast.success('Record added successfully.');
+    } catch {
+      toast.error('Failed to add record.');
+    }
   }
 
   function handleEdit(data: VehicleFormData) {
     if (editingRecord) {
-      updateRecord(editingRecord.id, data);
-      setEditingRecord(null);
+      try {
+        updateRecord(editingRecord.id, data);
+        setEditingRecord(null);
+        toast.success('Record updated successfully.');
+      } catch {
+        toast.error('Failed to update record.');
+      }
     }
   }
 
   function handleConfirmDelete() {
     if (deletingRecord) {
-      deleteRecord(deletingRecord.id);
-      setDeletingRecord(null);
+      try {
+        deleteRecord(deletingRecord.id);
+        setDeletingRecord(null);
+        toast.success('Record deleted successfully.');
+      } catch {
+        toast.error('Failed to delete record.');
+      }
 
       if (records.length <= 1) {
         navigate('/');
@@ -122,8 +158,13 @@ export function VehicleDetailPage() {
 
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
-                {countryName}
+              <h2 className="flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-tight">
+                {countryFlag ? (
+                  <span className="text-3xl leading-none" aria-hidden>
+                    {countryFlag}
+                  </span>
+                ) : null}
+                <span>{countryName}</span>
               </h2>
               <p className="text-sm text-muted-foreground">
                 {year} — {records.length} motor{' '}
@@ -147,7 +188,14 @@ export function VehicleDetailPage() {
           <Card>
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Country</p>
-              <p className="text-lg font-semibold">{countryName}</p>
+              <p className="flex items-center gap-2 text-lg font-semibold">
+                {countryFlag ? (
+                  <span className="text-2xl leading-none" aria-hidden>
+                    {countryFlag}
+                  </span>
+                ) : null}
+                <span>{countryName}</span>
+              </p>
               <p className="text-xs text-muted-foreground">{country}</p>
             </CardContent>
           </Card>
@@ -166,9 +214,51 @@ export function VehicleDetailPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <MotorEnergyBarChart data={chartData} />
-          <MotorEnergyPieChart data={chartData} />
+        <div className="space-y-3">
+          {hasLocalData && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowLocal(false)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  !showLocal
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Eurostat ({eurostatRecords.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLocal(true)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  showLocal
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Local ({localRecords.length})
+              </button>
+            </div>
+          )}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <MotorEnergyBarChart
+              data={chartData}
+              title={
+                showLocal
+                  ? 'Registrations — Local Data'
+                  : 'Registrations — Eurostat Data'
+              }
+            />
+            <MotorEnergyPieChart
+              data={chartData}
+              title={
+                showLocal
+                  ? 'Distribution — Local Data'
+                  : 'Distribution — Eurostat Data'
+              }
+            />
+          </div>
         </div>
 
         {/* Desktop: breakdown table */}

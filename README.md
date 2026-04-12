@@ -12,11 +12,54 @@ This dashboard is a specialized fleet management tool for Volkswagen's urban mob
 
 As part of the **AI-First Engineering** approach, this project's infrastructure was developed using an agentic workflow.
 
-1. **Tools Used:** Cursor (Pro), Gemini 3 Flash, and Claude 3.5 Sonnet.
-2. **Workflow:** I utilized **Cursor's Agentic Mode** for boilerplate generation and multi-file infrastructure setup. I directed the AI to solve complex environment conflicts through iterative prompting and context-sharing.
-3. **Quality Assurance:** AI-generated configurations (like ESLint Flat Config) were manually reviewed and refactored to align with the latest industry standards. I rejected experimental AI suggestions (e.g., Node v24) in favor of LTS stability.
-4. **Automated AI Code Review:** Integrated **Google Gemini** (`gemini-2.5-flash`) as an automated code reviewer directly into the CI/CD pipeline via GitHub Actions. On every pull request, Gemini reviews the diff with a focus on Clean Architecture, SOLID principles, React 19 / TypeScript best practices, and potential performance issues. This creates a continuous, AI-powered feedback loop that complements human review. **Location:** `.github/workflows/ai-code-review.yml`
-5. **Ownership:** I defined the **Architectural Vision** and **Infrastructure Strategy**. The AI acted as a high-speed pair programmer to implement the boilerplate and configuration files based on my technical constraints.
+1. **Tools Used:** Cursor (Pro) with Agentic Mode — **Claude Opus** for complex architectural decisions and multi-file implementations, **Cursor Auto** for simpler refactors and quick fixes (cost-efficient for routine tasks), and **Google Gemini Pro** for product/UX discussions and getting a second AI opinion without consuming the Opus budget. **Gemini Flash** powers the automated CI code review.
+2. **Workflow:** I used Cursor's Agentic Mode across the entire development lifecycle — infrastructure setup, feature implementation, testing, refactoring, and documentation. I directed the AI step-by-step, reviewing and approving each change before proceeding. For architectural decisions, I used conversational AI (Gemini, Claude) to discuss trade-offs before committing to an approach.
+3. **Quality Assurance:** Every AI-generated change went through the same pipeline a human contribution would: `tsc --strict`, ESLint, Vitest, and a production build. I reviewed diffs before each commit, ran checks locally, and iterated when the output didn't meet my standards.
+4. **Automated AI Code Review:** Integrated **Google Gemini** (`gemini-2.5-flash`) as an automated reviewer in the CI/CD pipeline via GitHub Actions. On every pull request, Gemini reviews the diff with a focus on Clean Architecture, SOLID principles, and React 19 / TypeScript best practices. The workflow is configured with `continue-on-error: true` because the Gemini API occasionally returns transient failures (rate limits, timeouts) — the review is additive and should never block a merge. **Location:** `.github/workflows/ai-code-review.yml`
+5. **Ownership:** I defined the architectural vision, data model, and UX strategy. The AI acted as a high-speed pair programmer — I directed what to build, reviewed how it was built, and refined the output until it met my quality bar.
+
+### Concrete Examples: Improved or Rejected AI Output
+
+| Situation                   | AI Suggestion                                                                  | My Decision                                                                                                                                                                                                                                    | Why                                                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Table engine                | AI built a plain HTML table with manual filter/sort logic                      | **I suggested TanStack Table** as a headless table engine                                                                                                                                                                                      | Manual filtering and sorting doesn't scale; TanStack Table provides a composable, declarative API for column filters, global search, sorting, and pagination out of the box |
+| Node version                | AI suggested Node v24 (experimental)                                           | **Rejected** — pinned to Node LTS 20/22                                                                                                                                                                                                        | Enterprise stability; ESM resolution failures in experimental versions                                                                                                      |
+| Tailwind version            | AI scaffolded with Tailwind v4                                                 | **Rolled back** to v3.4.17                                                                                                                                                                                                                     | v4 had ARM64 CLI issues on Apple Silicon; v3 is production-proven                                                                                                           |
+| Search debounce             | AI built a simple search filter but omitted debounce entirely                  | **I requested debounce** — essential to avoid re-rendering the table on every keystroke. AI then added it, but inside the `SearchInput` component. **I moved it** to the `useVehicleTable` hook                                                | Debounce is a performance concern, not a UI concern. `SearchInput` should stay presentational; the hook owns filtering logic (SoC)                                          |
+| Data merging for charts     | AI initially merged Eurostat and local record counts                           | **Rejected** — kept records separate with visual distinction                                                                                                                                                                                   | Merging different data sources would produce misleading totals; visual separation preserves trust                                                                           |
+| `getGlobalFilteredRowModel` | AI imported a non-existent TanStack Table function                             | **Removed** — `getFilteredRowModel()` handles global filtering implicitly                                                                                                                                                                      | Hallucination; verified against the official TanStack Table v8 documentation                                                                                                |
+| `"use client"` directives   | AI-generated Shadcn components included `"use client"` at the top of files     | **Removed** — this is a Vite SPA, not Next.js                                                                                                                                                                                                  | `"use client"` is a Next.js RSC directive for marking client components; in a pure client-side React app it's unnecessary and misleading                                    |
+| Component decomposition     | AI generated large monolithic components with duplicated code and inline logic | **I directed AI to extract** reusable components (`VehicleCard`, `TableHeaderFilters`, `SourceBadge`, etc.), move shared values into a `constants/` module, and extract business logic into custom hooks (`useVehicleTable`, `useVehicleForm`) | Keeps components small and presentational, eliminates duplication, and follows Single Responsibility Principle — UI renders, hooks own logic, constants are shared          |
+| Mobile pagination           | AI rendered full desktop pagination on mobile                                  | **Refactored** — hid non-essential controls, enlarged touch targets                                                                                                                                                                            | Violated Apple HIG 44×44px minimum; caused "fat finger" errors on mobile                                                                                                    |
+
+### Lessons Learned & Trade-offs
+
+**Where AI accelerated me:**
+
+- **Boilerplate and configuration:** ESLint flat config, Tailwind setup, Vite config, CI/CD pipelines — AI generated 80% of infrastructure in minutes instead of hours.
+- **Multi-file refactoring:** The micro-frontend restructuring (moving 30+ files and updating all imports) was completed in one pass with AI assistance. Manually, this would have been error-prone and tedious.
+- **Test generation:** AI produced well-structured test suites (111 tests) that I then reviewed and refined. This saved significant time while maintaining coverage quality.
+- **JSDoc documentation:** AI generated accurate JSDoc for all public APIs, which I reviewed and edited for precision.
+
+**Where AI slowed me down or required intervention:**
+
+- **Monolithic components:** AI's default tendency was to generate everything in a single file — logic, constants, and UI. I had to consistently direct it to extract hooks, create shared constants, and decompose components. Without this guidance, the codebase would violate SRP and be difficult to test or reuse.
+- **Hallucinated APIs:** AI sometimes referenced TanStack Table functions that don't exist (e.g., `getGlobalFilteredRowModel`). I had to verify imports against documentation.
+- **Over-engineering:** AI occasionally added unnecessary abstractions. I had to prune code to keep the architecture simple and aligned with the project's actual needs.
+- **Strict mode gaps:** AI-generated code initially passed without `strict: true`. When I enabled strict mode later, 5 null-safety issues surfaced — showing that AI doesn't proactively adopt the strictest type-checking unless directed.
+
+**Key takeaway:** AI is a powerful accelerator for implementation, but architectural decisions, quality standards, and UX judgment must come from the engineer. I treated AI as a pair programmer, not an autopilot.
+
+### Prompt Engineering Strategies
+
+Throughout the project, I iterated on how I communicated with AI to get better results:
+
+- **Step-by-step with approval gates:** Instead of asking AI to build an entire feature at once, I used prompts like _"go step by step, explain everything, and wait for me to approve before moving on."_ This kept changes small, reviewable, and easy to revert if needed.
+- **Scoped context-setting:** Before complex refactors, I provided tight scope and explicit task lists. For example: _"Context: I ONLY want to change how data is displayed in the main table. Task: 1) Aggregate by country and year. 2) Replace Edit/Delete with View Details. 3) Ensure mobile cards work."_ This prevented AI from making unrelated changes.
+- **Quality constraints upfront:** I opened every feature with _"remember to keep the same pattern, clean code, SOLID principles"_ — framing the AI's output quality from the start rather than fixing it after the fact.
+- **Cross-AI validation:** I used Gemini Pro as a second opinion on architecture and UX decisions made with Claude. This helped me weigh different perspectives before committing to an approach — especially for product-level decisions like the "1+N" data entry pattern and the master-detail navigation.
+- **Challenging AI-generated complexity:** The `transformResponse` function for the Eurostat JSON-stat format was initially generated with deeply nested `for` loops and `if` chains. I questioned the AI: _"why is this so complex?"_ and iterated until the logic was cleaner and more readable. Understanding _what_ the code does — not just that it works — is essential when you own it.
+- **Directing architecture, not just code:** I didn't just ask AI to "add debounce" — I told it _where_ it should live (the hook, not the component) because I knew a reusable UI component shouldn't contain business logic. Similarly, I told AI to remove `"use client"` directives because I understood they're a Next.js RSC pattern, not applicable in a Vite SPA.
 
 ---
 
@@ -52,8 +95,23 @@ A professional **GitHub Actions** pipeline acts as a quality gate for every cont
 
 ## 🎨 Code Quality & Style
 
+- **TypeScript Strict Mode:** `strict: true` is enabled in `tsconfig.app.json`, activating `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, and all other strict flags. This catches null/undefined issues at compile time rather than at runtime.
 - **ESLint 9:** Configured with the modern **Flat Config** system, integrating `typescript-eslint` and `prettier` directly into the linting pipeline.
 - **UI Primitives:** **Shadcn UI** has been initialized as the base component library to ensure accessibility (Radix UI) and design consistency.
+- **JSDoc API Documentation:** All public-facing exports (hooks, utilities, store, types, and reusable components) are documented with JSDoc. This includes parameter descriptions, return types, and cross-references (e.g. `{@link AggregatedRecord}`). Key documented modules:
+  - **Reusable components:** `SearchInput`, `FormTextField`, `ErrorBoundary`
+  - **Custom hooks:** `useVehicles`, `useVehicleTable`, `useVehicleForm`
+  - **Utilities:** `aggregateByCountryYear`, `buildChartData`, `formatCount`
+  - **Store:** `useVehicleStore` (Zustand with persistence)
+  - **Types:** `VehicleRecord`, `AggregatedRecord`, `VehicleFormData`
+
+---
+
+## 🧩 Trade-offs & future improvements
+
+- **Vehicle form validation:** The create/edit dialog uses **controlled React state** via `useVehicleForm`, with shared rules in `vehicle-form.ts` (`isFormValid`, `isFormYearValid`, `getMinVehicleFormYear`, `getMaxVehicleFormYear`). The **year must be a four-digit value between 2018 and the current calendar year** — 2018 is the same **`EUROSTAT_SINCE_YEAR`** lower bound as the Eurostat query (`sinceTimePeriod`), so local rows stay comparable to seeded API data and years like 1994 cannot be saved. The same validation runs in **`useVehicleStore` (`addRecord` / `updateRecord`)** so invalid payloads are not persisted if anything bypasses the UI.
+- **Why not React Hook Form + Zod (for now):** For this project’s scope, that stack would add dependencies and a structural refactor without changing end-user behavior. The current approach stays small, readable, and appropriate for a time-boxed challenge.
+- **Likely evolution:** If the app gained many forms, cross-field async rules, or a first-party API, adopting **Zod** (and optionally **React Hook Form** with Shadcn’s `Form` primitives) would be a natural upgrade: one schema for rules, clearer per-field errors, and—when the backend is Node—potential to **share** the same schema between client and server.
 
 ---
 
@@ -107,9 +165,9 @@ The project follows lightweight ADRs directly in this README to document _why_ k
 ### ADR-004: Responsive data visualization pattern
 
 - **Status:** Accepted
-- **Context:** Dense desktop tables create poor UX on mobile screens.
-- **Decision:** Use a **dual responsive pattern**: desktop table (`md+`) and mobile cards (`<md`), with mobile filters inside a bottom sheet (`Drawer`/`vaul`).
-- **Consequences:** Better mobile readability and touch usability; requires maintaining two presentation layouts over the same row model.
+- **Context:** Dense desktop tables create poor UX on mobile screens — columns get squeezed, text overflows, and touch targets become too small.
+- **Decision:** Use a **dual responsive pattern**: a full data table on desktop (`md+`) and **card-based layout** on mobile (`<md`). Cards are the modern standard for mobile data display — each record gets its own vertical card with readable typography and large touch targets. Mobile filters are housed inside a bottom sheet (`Drawer`/`vaul`) to save screen real estate. **Pagination over infinite scroll** was a deliberate choice: in a data-driven dashboard, users need to know exactly how many records exist and where they are in the dataset. Infinite scroll is suited for content feeds (social media), not for informational pages where users scan, compare, and navigate with intent.
+- **Consequences:** Better mobile readability and touch usability; pagination gives users a sense of position and control. The trade-off is maintaining two presentation layouts (table + cards) over the same row model, but TanStack Table's headless architecture makes this manageable since both layouts consume the same data and state.
 
 ### ADR-005: UI system and styling strategy
 

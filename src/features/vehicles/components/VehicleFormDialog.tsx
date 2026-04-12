@@ -9,7 +9,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { FormTextField } from '@/components/ui/form-text-field';
 import { MotorEnergySelect } from '@/features/vehicles/components/MotorEnergySelect';
+import { CountryCombobox } from '@/features/vehicles/components/CountryCombobox';
 import { useVehicleForm } from '@/features/vehicles/hooks';
+import {
+  getMaxVehicleFormYear,
+  getMinVehicleFormYear,
+  isFormYearValid,
+} from '@/features/vehicles/utils';
 import type { VehicleFormData, VehicleRecord } from '@/features/vehicles/types';
 
 interface LockedFields {
@@ -40,13 +46,19 @@ export function VehicleFormDialog({
     form,
     isValid,
     updateField,
-    updateCountry,
+    updateCountrySelection,
     updateMotorEnergy,
     updateCount,
   } = useVehicleForm(open, record, lockedFields);
 
+  const minYear = getMinVehicleFormYear();
+  const maxYear = getMaxVehicleFormYear();
+  const yearInvalid =
+    !hasLockedFields && form.year.trim() !== '' && !isFormYearValid(form.year);
+
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!isValid) return;
     onSubmit(form);
     onOpenChange(false);
   }
@@ -73,36 +85,32 @@ export function VehicleFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormTextField
-              id="countryCode"
-              label="Country Code"
-              placeholder="DE"
-              maxLength={2}
-              value={form.country}
-              onChange={updateCountry}
-              disabled={hasLockedFields}
-            />
-            <FormTextField
-              id="countryName"
-              label="Country Name"
-              placeholder="Germany"
-              value={form.countryName}
-              onChange={(v) => updateField('countryName', v)}
-              disabled={hasLockedFields}
-            />
-          </div>
+          <CountryCombobox
+            value={form.country}
+            onChange={updateCountrySelection}
+            disabled={hasLockedFields}
+          />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormTextField
-              id="year"
-              label="Year"
-              placeholder="2024"
-              maxLength={4}
-              value={form.year}
-              onChange={(v) => updateField('year', v)}
-              disabled={hasLockedFields}
-            />
+            <div className="space-y-1">
+              <FormTextField
+                id="year"
+                label="Year"
+                type="number"
+                placeholder="2024"
+                value={form.year}
+                onChange={(v) => updateField('year', v)}
+                min={minYear}
+                max={maxYear}
+                disabled={hasLockedFields}
+              />
+              {yearInvalid ? (
+                <p className="text-xs text-destructive" role="alert">
+                  Year must be between {minYear} and {maxYear} (same range as
+                  the Eurostat dataset).
+                </p>
+              ) : null}
+            </div>
             <FormTextField
               id="count"
               label="Vehicle Count"

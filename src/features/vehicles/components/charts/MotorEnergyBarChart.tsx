@@ -14,15 +14,32 @@ import type { ChartDataEntry } from '@/features/vehicles/utils';
 
 interface MotorEnergyBarChartProps {
   data: ChartDataEntry[];
+  title?: string;
 }
 
-export function MotorEnergyBarChart({ data }: MotorEnergyBarChartProps) {
+export function MotorEnergyBarChart({
+  data,
+  title = 'Registrations by Motor Type',
+}: MotorEnergyBarChartProps) {
+  if (data.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-medium">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <p className="text-sm text-muted-foreground">
+            No data available for this source.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">
-          Registrations by Motor Type
-        </CardTitle>
+        <CardTitle className="text-base font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent className="pb-4">
         <ResponsiveContainer width="100%" height={data.length * 56 + 40}>
@@ -45,7 +62,10 @@ export function MotorEnergyBarChart({ data }: MotorEnergyBarChartProps) {
               tickLine={false}
             />
             <Tooltip
-              formatter={(value: number) => [formatCount(value), 'Vehicles']}
+              formatter={(value) => [
+                formatCount(Number(value ?? 0)),
+                'Vehicles',
+              ]}
               contentStyle={{
                 borderRadius: '8px',
                 border: '1px solid hsl(var(--border))',
@@ -54,15 +74,7 @@ export function MotorEnergyBarChart({ data }: MotorEnergyBarChartProps) {
             />
             <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={28}>
               {data.map((entry, index) => (
-                <Cell
-                  key={index}
-                  fill={entry.fill}
-                  strokeDasharray={entry.source === 'local' ? '4 2' : 'none'}
-                  stroke={
-                    entry.source === 'local' ? entry.fill.slice(0, 7) : 'none'
-                  }
-                  strokeWidth={entry.source === 'local' ? 2 : 0}
-                />
+                <Cell key={index} fill={entry.fill} />
               ))}
             </Bar>
           </BarChart>

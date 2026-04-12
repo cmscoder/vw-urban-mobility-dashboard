@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VehicleRecord, VehicleFormData } from '@/features/vehicles/types';
+import { isFormValid } from '@/features/vehicles/utils/vehicle-form';
 
+/**
+ * Zustand store for vehicle records with localStorage persistence.
+ * Acts as the single source of truth for local CRUD after the initial
+ * Eurostat data is seeded (see ADR-002).
+ */
 interface VehicleStore {
   vehicles: VehicleRecord[];
   isSeeded: boolean;
@@ -10,6 +16,8 @@ interface VehicleStore {
   addRecord: (data: VehicleFormData) => void;
   updateRecord: (id: string, data: VehicleFormData) => void;
   deleteRecord: (id: string) => void;
+  /** Clears all local data so the next render re-seeds from the API. */
+  resetData: () => void;
 }
 
 export const useVehicleStore = create<VehicleStore>()(
@@ -26,6 +34,9 @@ export const useVehicleStore = create<VehicleStore>()(
       },
 
       addRecord: (data) => {
+        if (!isFormValid(data)) {
+          throw new Error('Invalid vehicle record');
+        }
         const record: VehicleRecord = {
           ...data,
           id: crypto.randomUUID(),
@@ -35,6 +46,9 @@ export const useVehicleStore = create<VehicleStore>()(
       },
 
       updateRecord: (id, data) => {
+        if (!isFormValid(data)) {
+          throw new Error('Invalid vehicle record');
+        }
         set((state) => ({
           vehicles: state.vehicles.map((r) =>
             r.id === id ? { ...r, ...data, source: 'local' } : r
@@ -46,6 +60,10 @@ export const useVehicleStore = create<VehicleStore>()(
         set((state) => ({
           vehicles: state.vehicles.filter((r) => r.id !== id),
         }));
+      },
+
+      resetData: () => {
+        set({ vehicles: [], isSeeded: false });
       },
     }),
     {

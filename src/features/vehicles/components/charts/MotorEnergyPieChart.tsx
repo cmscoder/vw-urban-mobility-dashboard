@@ -1,22 +1,38 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { formatCount } from '@/features/vehicles/utils';
 import type { ChartDataEntry } from '@/features/vehicles/utils';
 
 interface MotorEnergyPieChartProps {
   data: ChartDataEntry[];
+  title?: string;
 }
 
-export function MotorEnergyPieChart({ data }: MotorEnergyPieChartProps) {
+export function MotorEnergyPieChart({
+  data,
+  title = 'Distribution Share',
+}: MotorEnergyPieChartProps) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
+
+  if (data.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-medium">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <p className="text-sm text-muted-foreground">
+            No data available for this source.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">
-          Distribution Share
-        </CardTitle>
+        <CardTitle className="text-base font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent className="pb-4">
         <ResponsiveContainer width="100%" height={240}>
@@ -36,7 +52,10 @@ export function MotorEnergyPieChart({ data }: MotorEnergyPieChartProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [formatCount(value), 'Vehicles']}
+              formatter={(value) => [
+                formatCount(Number(value ?? 0)),
+                'Vehicles',
+              ]}
               contentStyle={{
                 borderRadius: '8px',
                 border: '1px solid hsl(var(--border))',
@@ -46,7 +65,6 @@ export function MotorEnergyPieChart({ data }: MotorEnergyPieChartProps) {
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Legend */}
         <div className="mt-2 space-y-1.5">
           {data.map((entry) => {
             const pct =
@@ -62,14 +80,6 @@ export function MotorEnergyPieChart({ data }: MotorEnergyPieChartProps) {
                     style={{ backgroundColor: entry.fill }}
                   />
                   <span className="text-muted-foreground">{entry.name}</span>
-                  {entry.source === 'local' && (
-                    <Badge
-                      variant="outline"
-                      className="px-1.5 py-0 text-[10px]"
-                    >
-                      Local
-                    </Badge>
-                  )}
                 </div>
                 <span className="font-medium">{pct}%</span>
               </div>

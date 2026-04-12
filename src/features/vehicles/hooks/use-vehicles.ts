@@ -6,8 +6,14 @@ import type { EurostatQueryParams } from '@/features/vehicles/types';
 
 const VEHICLES_KEY = 'vehicles';
 
+/**
+ * Fetches vehicle data from Eurostat via TanStack Query and seeds the
+ * Zustand store on first load. Returns the standard query result object
+ * (isLoading, isError, etc.) for UI state handling.
+ */
 export function useVehicles(params?: EurostatQueryParams) {
   const seed = useVehicleStore((state) => state.seed);
+  const isSeeded = useVehicleStore((state) => state.isSeeded);
 
   const query = useQuery({
     queryKey: [VEHICLES_KEY, params],
@@ -16,10 +22,10 @@ export function useVehicles(params?: EurostatQueryParams) {
   });
 
   useEffect(() => {
-    if (query.data) {
+    if (query.data && !isSeeded) {
       seed(query.data);
     }
-  }, [query.data, seed]);
+  }, [query.data, seed, isSeeded]);
 
   return query;
 }

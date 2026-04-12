@@ -40,6 +40,13 @@ const DEFAULT_SORTING: SortingState = [
   { id: 'countryName', desc: false },
 ];
 
+/**
+ * Headless table hook that wires TanStack Table with column filters,
+ * global search (debounced), sorting (year desc by default), and pagination.
+ * Returns the table instance plus derived helpers consumed by VehicleTable.
+ *
+ * @param data - Aggregated records to display.
+ */
 export function useVehicleTable(data: AggregatedRecord[]) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);

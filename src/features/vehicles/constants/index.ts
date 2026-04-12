@@ -1,3 +1,4 @@
+export { EUROSTAT_SINCE_YEAR } from './eurostat-since-year';
 export { EMPTY_FILTERS } from './vehicle-filters';
 export { MOTOR_ENERGY_OPTIONS } from './motor-energy';
 export { SOURCE_OPTIONS } from './source';
@@ -6,3 +7,5 @@ export { vehicleColumns, aggregatedColumns } from './table-columns';
 export { buildVehicleFilterFields } from './vehicle-filter-fields';
 export { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './pagination';
 export { CHART_COLORS } from './chart-colors';
+export { COUNTRIES, getCountryFlag } from './countries';
+export type { Country } from './countries';

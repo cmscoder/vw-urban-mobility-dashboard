@@ -1,6 +1,10 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+/**
+ * Reusable form field that composes a Label + Input with consistent
+ * spacing, aria-required, and optional disabled state for locked fields.
+ */
 interface FormTextFieldProps {
   id: string;
   label: string;
@@ -9,6 +13,8 @@ interface FormTextFieldProps {
   onChange: (value: string) => void;
   type?: 'text' | 'number';
   maxLength?: number;
+  min?: number;
+  max?: number;
   disabled?: boolean;
 }
 
@@ -20,6 +26,8 @@ export function FormTextField({
   onChange,
   type = 'text',
   maxLength,
+  min,
+  max,
   disabled,
 }: FormTextFieldProps) {
   return (
@@ -30,6 +38,8 @@ export function FormTextField({
         type={type}
         placeholder={placeholder}
         maxLength={maxLength}
+        min={min}
+        max={max}
         aria-required="true"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
