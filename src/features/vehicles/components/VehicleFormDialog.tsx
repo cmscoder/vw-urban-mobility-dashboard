@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { FormTextField } from '@/components/ui/form-text-field';
 import { MotorEnergySelect } from '@/features/vehicles/components/MotorEnergySelect';
+import { CountryCombobox } from '@/features/vehicles/components/CountryCombobox';
 import { useVehicleForm } from '@/features/vehicles/hooks';
 import type { VehicleFormData, VehicleRecord } from '@/features/vehicles/types';
 
@@ -40,7 +41,7 @@ export function VehicleFormDialog({
     form,
     isValid,
     updateField,
-    updateCountry,
+    updateCountrySelection,
     updateMotorEnergy,
     updateCount,
   } = useVehicleForm(open, record, lockedFields);
@@ -73,25 +74,11 @@ export function VehicleFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormTextField
-              id="countryCode"
-              label="Country Code"
-              placeholder="DE"
-              maxLength={2}
-              value={form.country}
-              onChange={updateCountry}
-              disabled={hasLockedFields}
-            />
-            <FormTextField
-              id="countryName"
-              label="Country Name"
-              placeholder="Germany"
-              value={form.countryName}
-              onChange={(v) => updateField('countryName', v)}
-              disabled={hasLockedFields}
-            />
-          </div>
+          <CountryCombobox
+            value={form.country}
+            onChange={updateCountrySelection}
+            disabled={hasLockedFields}
+          />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormTextField

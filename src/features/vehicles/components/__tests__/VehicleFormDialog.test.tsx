@@ -62,8 +62,9 @@ describe('VehicleFormDialog', () => {
       />
     );
 
-    expect(screen.getByLabelText('Country Code')).toHaveValue('DE');
-    expect(screen.getByLabelText('Country Name')).toHaveValue('Germany');
+    const combobox = screen.getByRole('combobox', { name: 'Select country' });
+    expect(combobox).toHaveTextContent('Germany');
+    expect(combobox).toHaveTextContent('DE');
     expect(screen.getByLabelText('Year')).toHaveValue('2022');
     expect(screen.getByLabelText('Vehicle Count')).toHaveValue(5000);
   });
@@ -95,7 +96,7 @@ describe('VehicleFormDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('allows typing into text inputs', async () => {
+  it('allows typing into year and count inputs', async () => {
     const user = userEvent.setup();
     render(
       <VehicleFormDialog
@@ -105,22 +106,27 @@ describe('VehicleFormDialog', () => {
       />
     );
 
-    const countryCode = screen.getByLabelText('Country Code');
-    const countryName = screen.getByLabelText('Country Name');
     const year = screen.getByLabelText('Year');
     const count = screen.getByLabelText('Vehicle Count');
-
-    await user.type(countryCode, 'fr');
-    expect(countryCode).toHaveValue('FR');
-
-    await user.type(countryName, 'France');
-    expect(countryName).toHaveValue('France');
 
     await user.type(year, '2023');
     expect(year).toHaveValue('2023');
 
     await user.type(count, '999');
     expect(count).toHaveValue(999);
+  });
+
+  it('shows country combobox with placeholder when no country selected', () => {
+    render(
+      <VehicleFormDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        onSubmit={onSubmit}
+      />
+    );
+
+    const combobox = screen.getByRole('combobox', { name: 'Select country' });
+    expect(combobox).toHaveTextContent('Select country…');
   });
 
   it('renders all energy options in the select', () => {

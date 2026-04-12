@@ -89,15 +89,16 @@ describe('useVehicleForm', () => {
     });
   });
 
-  describe('updateCountry', () => {
-    it('uppercases the country code', () => {
+  describe('updateCountrySelection', () => {
+    it('sets both country code (uppercased) and name', () => {
       const { result } = renderHook(() => useVehicleForm(true));
 
       act(() => {
-        result.current.updateCountry('de');
+        result.current.updateCountrySelection('de', 'Germany');
       });
 
       expect(result.current.form.country).toBe('DE');
+      expect(result.current.form.countryName).toBe('Germany');
     });
   });
 

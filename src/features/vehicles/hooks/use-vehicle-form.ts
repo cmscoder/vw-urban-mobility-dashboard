@@ -37,8 +37,12 @@ export function useVehicleForm(
     []
   );
 
-  const updateCountry = useCallback((code: string) => {
-    setForm((prev) => ({ ...prev, country: code.toUpperCase() }));
+  const updateCountrySelection = useCallback((code: string, name: string) => {
+    setForm((prev) => ({
+      ...prev,
+      country: code.toUpperCase(),
+      countryName: name,
+    }));
   }, []);
 
   const updateMotorEnergy = useCallback((value: string) => {
@@ -61,7 +65,7 @@ export function useVehicleForm(
     form,
     isValid: isFormValid(form),
     updateField,
-    updateCountry,
+    updateCountrySelection,
     updateMotorEnergy,
     updateCount,
   };
