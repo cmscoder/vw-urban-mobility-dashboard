@@ -15,6 +15,8 @@ interface VehicleStore {
   addRecord: (data: VehicleFormData) => void;
   updateRecord: (id: string, data: VehicleFormData) => void;
   deleteRecord: (id: string) => void;
+  /** Clears all local data so the next render re-seeds from the API. */
+  resetData: () => void;
 }
 
 export const useVehicleStore = create<VehicleStore>()(
@@ -51,6 +53,10 @@ export const useVehicleStore = create<VehicleStore>()(
         set((state) => ({
           vehicles: state.vehicles.filter((r) => r.id !== id),
         }));
+      },
+
+      resetData: () => {
+        set({ vehicles: [], isSeeded: false });
       },
     }),
     {

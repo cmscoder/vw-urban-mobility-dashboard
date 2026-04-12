@@ -13,6 +13,7 @@ const VEHICLES_KEY = 'vehicles';
  */
 export function useVehicles(params?: EurostatQueryParams) {
   const seed = useVehicleStore((state) => state.seed);
+  const isSeeded = useVehicleStore((state) => state.isSeeded);
 
   const query = useQuery({
     queryKey: [VEHICLES_KEY, params],
@@ -21,10 +22,10 @@ export function useVehicles(params?: EurostatQueryParams) {
   });
 
   useEffect(() => {
-    if (query.data) {
+    if (query.data && !isSeeded) {
       seed(query.data);
     }
-  }, [query.data, seed]);
+  }, [query.data, seed, isSeeded]);
 
   return query;
 }
