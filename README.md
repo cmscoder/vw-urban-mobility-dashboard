@@ -6,6 +6,10 @@
 
 This dashboard is a specialized fleet management tool for Volkswagen's urban mobility assets. This initial phase focuses on establishing a **high-stability, enterprise-grade development environment** and automated quality pipelines before moving into the architectural implementation.
 
+<img width="1090" height="564" alt="dashboard_proj" src="https://github.com/user-attachments/assets/b44b8e8e-b9ac-41e5-a981-a6574c25b854" />
+
+
+
 ---
 
 ## 🚀 Getting Started
