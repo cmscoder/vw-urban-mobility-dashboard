@@ -4,9 +4,12 @@
 
 ## 🎯 Project Overview
 
-This dashboard is a specialized fleet management tool for Volkswagen's urban mobility assets. This initial phase focuses on establishing a **high-stability, enterprise-grade development environment** and automated quality pipelines before moving into the architectural implementation.
+This dashboard is a specialized fleet management tool designed for urban mobility assets. It provides a comprehensive visualization and CRUD interface for vehicle registration data across Europe, directly consuming the Eurostat Public API (Passenger cars by type of motor energy): https://ec.europa.eu/eurostat/web/user-guides/data-browser/api-data-access/api-detailed-guidelines/api-statistics#estat-inpage-nav-heading-0.
+
+Beyond functional requirements, this project serves as a technical blueprint for a high-stability, enterprise-grade development environment, featuring automated quality pipelines, strict type safety, and a scalable "AI-First" architectural implementation.
 
 <img width="1090" height="564" alt="dashboard_proj" src="https://github.com/user-attachments/assets/b44b8e8e-b9ac-41e5-a981-a6574c25b854" />
+Live demo (deploy): https://urban-mobility-dashboard.netlify.app/
 
 
 
