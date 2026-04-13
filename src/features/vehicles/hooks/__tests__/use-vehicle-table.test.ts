@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { useVehicleTable } from '../use-vehicle-table';
@@ -253,6 +254,32 @@ describe('useVehicleTable', () => {
 
       expect(result.current.pagination.canPreviousPage).toBe(true);
       expect(result.current.pagination.canNextPage).toBe(false);
+    });
+  });
+
+  describe('sorting', () => {
+    it('applies default multi-column sort (year desc, then country name)', () => {
+      const { result } = renderHook(() => useVehicleTable(mockData));
+      const ids = result.current.table
+        .getRowModel()
+        .rows.map((r) => r.original.id);
+      expect(ids).toEqual(['FR-2023', 'DE-2023', 'DE-2022', 'ES-2022']);
+    });
+
+    it('toggles year sort order via column toggle handler', () => {
+      const { result } = renderHook(() => useVehicleTable(mockData));
+      const yearColumn = result.current.table.getColumn('year');
+      expect(yearColumn).toBeDefined();
+
+      act(() => {
+        yearColumn?.getToggleSortingHandler()?.({} as unknown as MouseEvent);
+      });
+
+      const idsAscYear = result.current.table
+        .getRowModel()
+        .rows.map((r) => r.original.id);
+      expect(idsAscYear[0]).toMatch(/2022$/);
+      expect(idsAscYear[idsAscYear.length - 1]).toMatch(/2023$/);
     });
   });
 });

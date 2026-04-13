@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -5,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
 import { TableHeaderFilters } from '@/features/vehicles/components/TableHeaderFilters';
 import { TableSkeleton } from '@/features/vehicles/components/TableSkeleton';
@@ -13,7 +15,7 @@ import { VehicleTableRow } from '@/features/vehicles/components/VehicleTableRow'
 import { VehicleCard } from '@/features/vehicles/components/VehicleCard';
 import { MobileFilters } from '@/features/vehicles/components/MobileFilters';
 import { TablePagination } from '@/features/vehicles/components/TablePagination';
-import type { Row } from '@tanstack/react-table';
+import type { Row, Table as TanstackTable } from '@tanstack/react-table';
 import type {
   VehicleFilters,
   AggregatedRecord,
@@ -25,6 +27,8 @@ import type {
 const EMPTY_RECORDS_MESSAGE = 'No records found.';
 
 interface VehicleTableProps {
+  /** TanStack table instance for header sort controls (dashboard). */
+  table?: TanstackTable<AggregatedRecord>;
   rows: Row<AggregatedRecord>[];
   filters: VehicleFilters;
   searchQuery: string;
@@ -44,6 +48,7 @@ interface VehicleTableProps {
 }
 
 interface VehicleTableMobileViewProps {
+  table?: TanstackTable<AggregatedRecord>;
   rows: Row<AggregatedRecord>[];
   filters: VehicleFilters;
   searchQuery: string;
@@ -61,6 +66,7 @@ interface VehicleTableMobileViewProps {
 }
 
 function VehicleTableMobileView({
+  table,
   rows,
   filters,
   searchQuery,
@@ -85,6 +91,7 @@ function VehicleTableMobileView({
           className="flex-1"
         />
         <MobileFilters
+          table={table}
           filters={filters}
           countryOptions={countryOptions}
           yearOptions={yearOptions}
@@ -116,6 +123,7 @@ function VehicleTableMobileView({
 }
 
 interface VehicleTableDesktopViewProps {
+  table?: TanstackTable<AggregatedRecord>;
   rows: Row<AggregatedRecord>[];
   filters: VehicleFilters;
   searchQuery: string;
@@ -134,6 +142,7 @@ interface VehicleTableDesktopViewProps {
 }
 
 function VehicleTableDesktopView({
+  table,
   rows,
   filters,
   searchQuery,
@@ -152,21 +161,36 @@ function VehicleTableDesktopView({
 }: VehicleTableDesktopViewProps) {
   return (
     <div className="hidden md:block" data-testid="desktop-view">
-      <SearchInput
-        value={searchQuery}
-        onChange={onSearchChange}
-        className="mb-4 max-w-sm"
-      />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <SearchInput
+          value={searchQuery}
+          onChange={onSearchChange}
+          className="min-w-[12rem] max-w-sm flex-1"
+        />
+        {hasActiveFilters ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0 gap-1.5"
+            onClick={onFiltersClear}
+            aria-label="Clear all filters"
+          >
+            <X className="h-4 w-4" aria-hidden />
+            Clear filters
+          </Button>
+        ) : null}
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableHeaderFilters
+              table={table}
               filters={filters}
               countryOptions={countryOptions}
               yearOptions={yearOptions}
-              hasActiveFilters={hasActiveFilters}
               onFilterChange={onFilterChange}
-              onFiltersClear={onFiltersClear}
             />
           </TableHeader>
           <TableBody>
@@ -199,6 +223,7 @@ function VehicleTableDesktopView({
 }
 
 export function VehicleTable({
+  table,
   rows,
   filters,
   searchQuery,
@@ -221,6 +246,7 @@ export function VehicleTable({
   return (
     <>
       <VehicleTableMobileView
+        table={table}
         rows={rows}
         filters={filters}
         searchQuery={searchQuery}
@@ -237,6 +263,7 @@ export function VehicleTable({
         showPagination={showPagination}
       />
       <VehicleTableDesktopView
+        table={table}
         rows={rows}
         filters={filters}
         searchQuery={searchQuery}

@@ -1,4 +1,8 @@
-import type { ColumnFiltersState } from '@tanstack/react-table';
+import type {
+  ColumnFiltersState,
+  SortingState,
+  Table,
+} from '@tanstack/react-table';
 
 import { EMPTY_FILTERS } from '@/features/vehicles/constants';
 import type {
@@ -6,6 +10,54 @@ import type {
   FilterOption,
   VehicleFilters,
 } from '@/features/vehicles/types';
+
+/** Columns where the first sort click applies descending (newest / high-first). */
+const DESC_FIRST_SORT_COLUMN_IDS = new Set<string>([
+  'year',
+  'totalCount',
+  'recordCount',
+]);
+
+/**
+ * Next single-column sort state after clicking a header sort control.
+ * Matches mobile presets: each click replaces the full `sorting` array (no multi-sort via UI).
+ */
+export function nextAggregatedColumnSortingState(
+  columnId: string,
+  sorting: SortingState
+): SortingState {
+  const descFirst = DESC_FIRST_SORT_COLUMN_IDS.has(columnId);
+  const entry = sorting.find((s) => s.id === columnId);
+  const sorted = entry === undefined ? false : entry.desc ? 'desc' : 'asc';
+
+  if (sorted === false) {
+    return [{ id: columnId, desc: descFirst }];
+  }
+
+  if (sorted === 'desc') {
+    if (descFirst) {
+      return [{ id: columnId, desc: false }];
+    }
+    return [];
+  }
+
+  if (descFirst) {
+    return [];
+  }
+  return [{ id: columnId, desc: true }];
+}
+
+/** Applies {@link nextAggregatedColumnSortingState} via `table.setSorting` (same mechanism as mobile). */
+export function cycleAggregatedColumnSort(
+  table: Table<AggregatedRecord>,
+  columnId: string
+): void {
+  const column = table.getColumn(columnId);
+  if (!column?.getCanSort()) return;
+  table.setSorting(
+    nextAggregatedColumnSortingState(columnId, table.getState().sorting)
+  );
+}
 
 /** Maps TanStack column filter state to the app's `VehicleFilters` shape. */
 export function columnFiltersToVehicleFilters(

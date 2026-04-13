@@ -13,6 +13,9 @@ export { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './pagination';
 export {
   VEHICLE_TABLE_SEARCH_DEBOUNCE_MS,
   DEFAULT_AGGREGATED_TABLE_SORTING,
+  AGGREGATED_TABLE_SORT_PRESETS,
+  matchAggregatedTableSortPresetValue,
+  type AggregatedTableSortPreset,
 } from './vehicle-table';
 export {
   VEHICLES_QUERY_ROOT,

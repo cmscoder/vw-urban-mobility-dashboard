@@ -19,4 +19,6 @@ export {
   columnFiltersToVehicleFilters,
   countryOptionsFromAggregated,
   yearOptionsFromAggregated,
+  cycleAggregatedColumnSort,
+  nextAggregatedColumnSortingState,
 } from './vehicle-table';

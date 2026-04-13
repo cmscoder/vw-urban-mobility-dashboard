@@ -2,9 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   columnFiltersToVehicleFilters,
   countryOptionsFromAggregated,
+  nextAggregatedColumnSortingState,
   yearOptionsFromAggregated,
 } from '../vehicle-table';
-import { EMPTY_FILTERS } from '@/features/vehicles/constants';
+import {
+  DEFAULT_AGGREGATED_TABLE_SORTING,
+  EMPTY_FILTERS,
+} from '@/features/vehicles/constants';
 import type { AggregatedRecord } from '@/features/vehicles/types';
 
 describe('columnFiltersToVehicleFilters', () => {
@@ -83,6 +87,50 @@ describe('countryOptionsFromAggregated', () => {
     expect(countryOptionsFromAggregated(mixed)).toEqual([
       { value: 'DE', label: 'Germany' },
     ]);
+  });
+});
+
+describe('nextAggregatedColumnSortingState', () => {
+  it('from default multi-sort (year desc), year cycles asc → cleared → desc', () => {
+    const s0 = DEFAULT_AGGREGATED_TABLE_SORTING;
+    const s1 = nextAggregatedColumnSortingState('year', s0);
+    expect(s1).toEqual([{ id: 'year', desc: false }]);
+    const s2 = nextAggregatedColumnSortingState('year', s1);
+    expect(s2).toEqual([]);
+    const s3 = nextAggregatedColumnSortingState('year', s2);
+    expect(s3).toEqual([{ id: 'year', desc: true }]);
+  });
+
+  it('countryName cycles asc → desc → cleared (desc-first false)', () => {
+    expect(nextAggregatedColumnSortingState('countryName', [])).toEqual([
+      { id: 'countryName', desc: false },
+    ]);
+    expect(
+      nextAggregatedColumnSortingState('countryName', [
+        { id: 'countryName', desc: false },
+      ])
+    ).toEqual([{ id: 'countryName', desc: true }]);
+    expect(
+      nextAggregatedColumnSortingState('countryName', [
+        { id: 'countryName', desc: true },
+      ])
+    ).toEqual([]);
+  });
+
+  it('totalCount uses desc-first cycle', () => {
+    expect(nextAggregatedColumnSortingState('totalCount', [])).toEqual([
+      { id: 'totalCount', desc: true },
+    ]);
+    expect(
+      nextAggregatedColumnSortingState('totalCount', [
+        { id: 'totalCount', desc: true },
+      ])
+    ).toEqual([{ id: 'totalCount', desc: false }]);
+    expect(
+      nextAggregatedColumnSortingState('totalCount', [
+        { id: 'totalCount', desc: false },
+      ])
+    ).toEqual([]);
   });
 });
 

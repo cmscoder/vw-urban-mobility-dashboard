@@ -129,6 +129,7 @@ export default function DashboardPage() {
         )}
 
         <VehicleTable
+          table={table}
           rows={rows}
           filters={filters}
           searchQuery={searchQuery}

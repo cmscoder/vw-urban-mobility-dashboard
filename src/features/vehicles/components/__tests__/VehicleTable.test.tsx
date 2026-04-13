@@ -81,13 +81,24 @@ function renderMobile(ui: React.ReactElement) {
 }
 
 describe('VehicleTable — Desktop', () => {
-  it('renders inline filter dropdowns in the header', () => {
+  it('renders filter controls in the column headers', () => {
     const { desktop } = renderDesktop(
       <VehicleTable {...defaultProps} rows={[]} isLoading={false} />
     );
 
     expect(desktop.getByLabelText('Filter by country')).toBeInTheDocument();
     expect(desktop.getByLabelText('Filter by year')).toBeInTheDocument();
+  });
+
+  it('renders static column headers (Country, Year, Total Count, Motor Types)', () => {
+    const { desktop } = renderDesktop(
+      <VehicleTable {...defaultProps} rows={mockRows} isLoading={false} />
+    );
+
+    expect(desktop.getByText('Country')).toBeInTheDocument();
+    expect(desktop.getByText('Year')).toBeInTheDocument();
+    expect(desktop.getByText('Total Count')).toBeInTheDocument();
+    expect(desktop.getByText('Motor Types')).toBeInTheDocument();
   });
 
   it('shows empty state when no records exist', () => {
@@ -185,7 +196,7 @@ describe('VehicleTable — Desktop', () => {
     expect(onFiltersClear).toHaveBeenCalled();
   });
 
-  it('calls onFilterChange when a country is selected', async () => {
+  it('calls onFilterChange when a country is selected via header popover', async () => {
     const user = userEvent.setup();
     const onFilterChange = vi.fn();
 
@@ -199,7 +210,7 @@ describe('VehicleTable — Desktop', () => {
     );
 
     await user.click(desktop.getByLabelText('Filter by country'));
-    const option = await screen.findByRole('option', { name: 'Germany' });
+    const option = await screen.findByRole('button', { name: 'Germany' });
     await user.click(option);
 
     expect(onFilterChange).toHaveBeenCalledWith('country', 'DE');
@@ -311,7 +322,7 @@ describe('VehicleTable — Mobile', () => {
     await user.click(filtersBtn);
 
     expect(
-      await screen.findByText('Narrow down the vehicle records.')
+      await screen.findByText('Narrow down and order the vehicle records.')
     ).toBeInTheDocument();
   });
 
