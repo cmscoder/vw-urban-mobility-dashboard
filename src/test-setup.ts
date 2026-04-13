@@ -1,3 +1,4 @@
+/** Vitest global setup: jest-dom matchers + jsdom gaps for Radix UI, vaul, and charts. */
 import '@testing-library/jest-dom/vitest';
 
 // vaul (Drawer) relies on matchMedia which jsdom doesn't implement
@@ -29,4 +30,13 @@ if (!Element.prototype.releasePointerCapture) {
 // Radix Select uses scrollIntoView which jsdom doesn't implement
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
+}
+
+// Recharts (ResponsiveContainer) expects ResizeObserver
+if (!globalThis.ResizeObserver) {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
 }

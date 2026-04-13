@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { TablePagination, type PaginationInfo } from '../TablePagination';
+import { TablePagination } from '../TablePagination';
+import type { PaginationInfo } from '@/features/vehicles/types';
 
 function createPagination(
   overrides: Partial<PaginationInfo> = {}

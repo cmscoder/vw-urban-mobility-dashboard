@@ -135,4 +135,29 @@ describe('aggregateByCountryYear', () => {
     expect(result).toHaveLength(2);
     expect(result.map((r) => r.id).sort()).toEqual(['DE-2022', 'DE-2023']);
   });
+
+  it('merges rows when country code differs only by case', () => {
+    const records = [
+      createRecord({
+        id: '1',
+        country: 'DE',
+        year: '2022',
+        motorEnergy: 'ELC',
+        count: 100,
+      }),
+      createRecord({
+        id: '2',
+        country: 'de',
+        year: '2022',
+        motorEnergy: 'HYB',
+        count: 200,
+      }),
+    ];
+
+    const result = aggregateByCountryYear(records);
+    expect(result).toHaveLength(1);
+    expect(result[0].country).toBe('DE');
+    expect(result[0].totalCount).toBe(300);
+    expect(result[0].recordCount).toBe(2);
+  });
 });

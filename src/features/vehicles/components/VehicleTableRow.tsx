@@ -1,8 +1,13 @@
 import { Eye } from 'lucide-react';
+
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatCount } from '@/features/vehicles/utils';
+import {
+  formatCount,
+  formatMotorTypeCountLabel,
+  viewDetailsAriaLabel,
+} from '@/features/vehicles/utils';
 import type { AggregatedRecord } from '@/features/vehicles/types';
 
 interface VehicleTableRowProps {
@@ -23,17 +28,17 @@ export function VehicleTableRow({
       </TableCell>
       <TableCell>
         <Badge variant="secondary">
-          {record.recordCount} motor{' '}
-          {record.recordCount === 1 ? 'type' : 'types'}
+          {formatMotorTypeCountLabel(record.recordCount)}
         </Badge>
       </TableCell>
       <TableCell>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           className="gap-1.5"
           onClick={() => onViewDetails(record)}
-          aria-label={`View details for ${record.countryName} ${record.year}`}
+          aria-label={viewDetailsAriaLabel(record)}
         >
           <Eye className="h-4 w-4" />
           View Details

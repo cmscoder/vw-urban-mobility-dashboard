@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,20 +35,21 @@ export function CountryCombobox({
   onChange,
   disabled = false,
 }: CountryComboboxProps) {
+  const triggerId = useId();
   const [open, setOpen] = useState(false);
 
   const selected = COUNTRIES.find((c) => c.code === value);
 
   return (
     <div className="space-y-2">
-      <Label>Country</Label>
+      <Label htmlFor={triggerId}>Country</Label>
       <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           <Button
+            id={triggerId}
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            aria-label="Select country"
             disabled={disabled}
             className="w-full justify-between font-normal"
           >

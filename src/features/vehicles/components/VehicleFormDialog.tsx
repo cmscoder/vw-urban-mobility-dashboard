@@ -1,3 +1,5 @@
+import type { SubmitEvent } from 'react';
+
 import {
   Dialog,
   DialogContent,
@@ -8,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FormTextField } from '@/components/ui/form-text-field';
+
 import { MotorEnergySelect } from '@/features/vehicles/components/MotorEnergySelect';
 import { CountryCombobox } from '@/features/vehicles/components/CountryCombobox';
 import { useVehicleForm } from '@/features/vehicles/hooks';
@@ -56,32 +59,37 @@ export function VehicleFormDialog({
   const yearInvalid =
     !hasLockedFields && form.year.trim() !== '' && !isFormYearValid(form.year);
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  const title = isEditing
+    ? 'Edit Record'
+    : hasLockedFields
+      ? 'Add Motor Type'
+      : 'Add New Record';
+
+  const description = isEditing
+    ? 'Update the vehicle registration data below.'
+    : lockedFields
+      ? `Add a new motor type for ${lockedFields.countryName} (${lockedFields.year}).`
+      : 'Fill in the details to add a new vehicle registration record.';
+
+  const submitLabel = isEditing
+    ? 'Save Changes'
+    : hasLockedFields
+      ? 'Add Motor Type'
+      : 'Add Record';
+
+  function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!isValid) return;
     onSubmit(form);
     onOpenChange(false);
   }
 
-  function getTitle() {
-    if (isEditing) return 'Edit Record';
-    if (hasLockedFields) return 'Add Motor Type';
-    return 'Add New Record';
-  }
-
-  function getDescription() {
-    if (isEditing) return 'Update the vehicle registration data below.';
-    if (hasLockedFields)
-      return `Add a new motor type for ${lockedFields.countryName} (${lockedFields.year}).`;
-    return 'Fill in the details to add a new vehicle registration record.';
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{getTitle()}</DialogTitle>
-          <DialogDescription>{getDescription()}</DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,7 +143,7 @@ export function VehicleFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={!isValid}>
-              {isEditing ? 'Save Changes' : 'Add Record'}
+              {submitLabel}
             </Button>
           </DialogFooter>
         </form>

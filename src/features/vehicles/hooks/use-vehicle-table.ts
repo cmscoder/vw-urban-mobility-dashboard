@@ -8,37 +8,26 @@ import {
   type ColumnFiltersState,
   type SortingState,
   type PaginationState,
+  type Table,
 } from '@tanstack/react-table';
 import { useDebounce } from 'use-debounce';
+
 import {
-  EMPTY_FILTERS,
   DEFAULT_PAGE_SIZE,
   aggregatedColumns,
+  VEHICLE_TABLE_SEARCH_DEBOUNCE_MS,
+  DEFAULT_AGGREGATED_TABLE_SORTING,
 } from '@/features/vehicles/constants';
+import {
+  columnFiltersToVehicleFilters,
+  countryOptionsFromAggregated,
+  yearOptionsFromAggregated,
+} from '@/features/vehicles/utils';
 import type {
-  VehicleFilters,
   AggregatedRecord,
-  FilterOption,
+  PaginationInfo,
+  VehicleFilters,
 } from '@/features/vehicles/types';
-
-const SEARCH_DEBOUNCE_MS = 300;
-
-function columnFiltersToFilters(
-  colFilters: ColumnFiltersState
-): VehicleFilters {
-  const result = { ...EMPTY_FILTERS };
-  for (const { id, value } of colFilters) {
-    if (id in result) {
-      result[id as keyof VehicleFilters] = value as string;
-    }
-  }
-  return result;
-}
-
-const DEFAULT_SORTING: SortingState = [
-  { id: 'year', desc: true },
-  { id: 'countryName', desc: false },
-];
 
 /**
  * Headless table hook that wires TanStack Table with column filters,
@@ -49,9 +38,14 @@ const DEFAULT_SORTING: SortingState = [
  */
 export function useVehicleTable(data: AggregatedRecord[]) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
+  const [sorting, setSorting] = useState<SortingState>(
+    DEFAULT_AGGREGATED_TABLE_SORTING
+  );
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch] = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
+  const [debouncedSearch] = useDebounce(
+    searchQuery,
+    VEHICLE_TABLE_SEARCH_DEBOUNCE_MS
+  );
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -77,24 +71,16 @@ export function useVehicleTable(data: AggregatedRecord[]) {
   });
 
   const filters = useMemo(
-    () => columnFiltersToFilters(columnFilters),
+    () => columnFiltersToVehicleFilters(columnFilters),
     [columnFilters]
   );
 
-  const countryOptions: FilterOption[] = useMemo(() => {
-    const unique = new Map<string, string>();
-    for (const v of data) {
-      if (!unique.has(v.country)) unique.set(v.country, v.countryName);
-    }
-    return Array.from(unique.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [data]);
+  const countryOptions = useMemo(
+    () => countryOptionsFromAggregated(data),
+    [data]
+  );
 
-  const yearOptions: FilterOption[] = useMemo(() => {
-    const years = [...new Set(data.map((v) => v.year))].sort().reverse();
-    return years.map((y) => ({ value: y, label: y }));
-  }, [data]);
+  const yearOptions = useMemo(() => yearOptionsFromAggregated(data), [data]);
 
   const activeFilterCount = columnFilters.length;
   const hasActiveFilters = activeFilterCount > 0;
@@ -118,6 +104,12 @@ export function useVehicleTable(data: AggregatedRecord[]) {
 
   const filteredTotal = table.getFilteredRowModel().rows.length;
 
+  const paginationInfo = useMemo(
+    () => buildPaginationInfo(table, pagination, filteredTotal),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `pagination` identity changes often; pageIndex/pageSize are the meaningful deps.
+    [table, pagination.pageIndex, pagination.pageSize, filteredTotal]
+  );
+
   return {
     table,
     filters,
@@ -129,18 +121,29 @@ export function useVehicleTable(data: AggregatedRecord[]) {
     activeFilterCount,
     updateFilter,
     clearFilters,
-    pagination: {
-      pageIndex: pagination.pageIndex,
-      pageSize: pagination.pageSize,
-      pageCount: table.getPageCount(),
-      filteredTotal,
-      canPreviousPage: table.getCanPreviousPage(),
-      canNextPage: table.getCanNextPage(),
-      goToFirstPage: () => table.setPageIndex(0),
-      goToPreviousPage: () => table.previousPage(),
-      goToNextPage: () => table.nextPage(),
-      goToLastPage: () => table.setPageIndex(table.getPageCount() - 1),
-      setPageSize: (size: number) => table.setPageSize(size),
-    },
+    pagination: paginationInfo,
+  };
+}
+
+function buildPaginationInfo(
+  table: Table<AggregatedRecord>,
+  pagination: PaginationState,
+  filteredTotal: number
+): PaginationInfo {
+  const { pageIndex, pageSize } = pagination;
+  const pageCount = Math.max(1, Math.ceil(filteredTotal / pageSize));
+
+  return {
+    pageIndex,
+    pageSize,
+    pageCount,
+    filteredTotal,
+    canPreviousPage: pageIndex > 0,
+    canNextPage: pageIndex < pageCount - 1,
+    goToFirstPage: () => table.setPageIndex(0),
+    goToPreviousPage: () => table.previousPage(),
+    goToNextPage: () => table.nextPage(),
+    goToLastPage: () => table.setPageIndex(pageCount - 1),
+    setPageSize: (size: number) => table.setPageSize(size),
   };
 }

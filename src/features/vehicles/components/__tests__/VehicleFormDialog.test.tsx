@@ -62,7 +62,7 @@ describe('VehicleFormDialog', () => {
       />
     );
 
-    const combobox = screen.getByRole('combobox', { name: 'Select country' });
+    const combobox = screen.getByRole('combobox', { name: 'Country' });
     expect(combobox).toHaveTextContent('Germany');
     expect(combobox).toHaveTextContent('DE');
     expect(screen.getByLabelText('Year')).toHaveValue(2022);
@@ -126,7 +126,7 @@ describe('VehicleFormDialog', () => {
       />
     );
 
-    const combobox = screen.getByRole('combobox', { name: 'Select country' });
+    const combobox = screen.getByRole('combobox', { name: 'Country' });
     expect(combobox).toHaveTextContent('Select country…');
   });
 

@@ -1,7 +1,39 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+
 import type { VehicleRecord, VehicleFormData } from '@/features/vehicles/types';
-import { isFormValid } from '@/features/vehicles/utils/vehicle-form';
+import { isFormValid } from '@/features/vehicles/utils';
+
+/** Shown in UI when another row already uses this country × year × motor combination. */
+export const DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE =
+  'A record for this country, year, and motor type already exists.';
+
+function assertValidVehicleForm(data: VehicleFormData): void {
+  if (!isFormValid(data)) {
+    throw new Error('Invalid vehicle record');
+  }
+}
+
+function sameNaturalKey(
+  a: { country: string; year: string; motorEnergy: string },
+  b: { country: string; year: string; motorEnergy: string }
+): boolean {
+  return (
+    a.country.toUpperCase() === b.country.toUpperCase() &&
+    a.year.trim() === b.year.trim() &&
+    a.motorEnergy === b.motorEnergy
+  );
+}
+
+function hasNaturalKeyCollision(
+  vehicles: VehicleRecord[],
+  candidate: VehicleFormData,
+  excludeId?: string
+): boolean {
+  return vehicles.some(
+    (r) => r.id !== excludeId && sameNaturalKey(r, candidate)
+  );
+}
 
 /**
  * Zustand store for vehicle records with localStorage persistence.
@@ -34,26 +66,35 @@ export const useVehicleStore = create<VehicleStore>()(
       },
 
       addRecord: (data) => {
-        if (!isFormValid(data)) {
-          throw new Error('Invalid vehicle record');
-        }
-        const record: VehicleRecord = {
-          ...data,
-          id: crypto.randomUUID(),
-          source: 'local',
-        };
-        set((state) => ({ vehicles: [...state.vehicles, record] }));
+        assertValidVehicleForm(data);
+        set((state) => {
+          if (hasNaturalKeyCollision(state.vehicles, data)) {
+            throw new Error(DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE);
+          }
+          const record: VehicleRecord = {
+            ...data,
+            id: crypto.randomUUID(),
+            source: 'local',
+          };
+          return { vehicles: [...state.vehicles, record] };
+        });
       },
 
       updateRecord: (id, data) => {
-        if (!isFormValid(data)) {
-          throw new Error('Invalid vehicle record');
-        }
-        set((state) => ({
-          vehicles: state.vehicles.map((r) =>
-            r.id === id ? { ...r, ...data, source: 'local' } : r
-          ),
-        }));
+        assertValidVehicleForm(data);
+        set((state) => {
+          if (!state.vehicles.some((r) => r.id === id)) {
+            throw new Error('Record not found');
+          }
+          if (hasNaturalKeyCollision(state.vehicles, data, id)) {
+            throw new Error(DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE);
+          }
+          return {
+            vehicles: state.vehicles.map((r) =>
+              r.id === id ? { ...r, ...data, source: 'local' } : r
+            ),
+          };
+        });
       },
 
       deleteRecord: (id) => {

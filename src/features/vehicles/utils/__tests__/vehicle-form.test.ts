@@ -4,8 +4,10 @@ import {
   isFormYearValid,
   getMaxVehicleFormYear,
   getMinVehicleFormYear,
+  stablePartialVehicleFormKey,
+  stableVehicleRecordKey,
 } from '../vehicle-form';
-import type { VehicleFormData } from '@/features/vehicles/types';
+import type { VehicleFormData, VehicleRecord } from '@/features/vehicles/types';
 
 const baseForm: VehicleFormData = {
   country: 'DE',
@@ -79,6 +81,44 @@ describe('vehicle-form', () => {
 
     it('rejects a year before 2018 even when other fields are valid', () => {
       expect(isFormValid({ ...baseForm, year: '1994' })).toBe(false);
+    });
+  });
+
+  describe('stablePartialVehicleFormKey', () => {
+    it('matches for different object references with same fields', () => {
+      const a = { country: 'ES', countryName: 'Spain', year: '2024' };
+      const b = { country: 'ES', countryName: 'Spain', year: '2024' };
+      expect(stablePartialVehicleFormKey(a)).toBe(
+        stablePartialVehicleFormKey(b)
+      );
+    });
+
+    it('differs when a field value changes', () => {
+      expect(
+        stablePartialVehicleFormKey({
+          country: 'ES',
+          countryName: 'Spain',
+          year: '2024',
+        })
+      ).not.toBe(
+        stablePartialVehicleFormKey({
+          country: 'ES',
+          countryName: 'Spain',
+          year: '2025',
+        })
+      );
+    });
+  });
+
+  describe('stableVehicleRecordKey', () => {
+    it('is empty when there is no record', () => {
+      expect(stableVehicleRecordKey(null)).toBe('');
+      expect(stableVehicleRecordKey(undefined)).toBe('');
+    });
+
+    it('uses record id', () => {
+      const record = { id: 'abc' } as VehicleRecord;
+      expect(stableVehicleRecordKey(record)).toBe('abc');
     });
   });
 });

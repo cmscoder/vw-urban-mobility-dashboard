@@ -12,10 +12,10 @@ export function TableSkeleton({
 }: TableSkeletonProps) {
   return (
     <>
-      {Array.from({ length: count }).map((_, i) => (
-        <TableRow key={i}>
-          {Array.from({ length: columnsCount }).map((_, j) => (
-            <TableCell key={j}>
+      {[...Array(count).keys()].map((rowIndex) => (
+        <TableRow key={rowIndex}>
+          {[...Array(columnsCount).keys()].map((columnIndex) => (
+            <TableCell key={columnIndex}>
               <Skeleton className="h-4 w-full" />
             </TableCell>
           ))}

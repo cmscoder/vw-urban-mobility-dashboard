@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -57,25 +57,34 @@ export default function DashboardPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
-  function handleCreate(data: VehicleFormData) {
-    try {
-      addRecord(data);
-      toast.success('Record added successfully.');
-      navigate(`/vehicles/${data.country}/${data.year}`);
-    } catch {
-      toast.error('Failed to add record.');
-    }
-  }
+  const handleCreate = useCallback(
+    (data: VehicleFormData) => {
+      try {
+        addRecord(data);
+        toast.success('Record added successfully.');
+        const country = data.country.toUpperCase();
+        navigate(`/vehicles/${country}/${encodeURIComponent(data.year)}`);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Failed to add record.');
+      }
+    },
+    [addRecord, navigate]
+  );
 
-  function handleConfirmReset() {
+  const handleConfirmReset = useCallback(() => {
     resetData();
     setResetDialogOpen(false);
     toast.success('Data reset to original Eurostat records.');
-  }
+  }, [resetData]);
 
-  function handleViewDetails(record: AggregatedRecord) {
-    navigate(`/vehicles/${record.country}/${record.year}`);
-  }
+  const handleViewDetails = useCallback(
+    (record: AggregatedRecord) => {
+      navigate(
+        `/vehicles/${record.country.toUpperCase()}/${encodeURIComponent(record.year)}`
+      );
+    },
+    [navigate]
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -120,6 +129,7 @@ export default function DashboardPage() {
         )}
 
         <VehicleTable
+          table={table}
           rows={rows}
           filters={filters}
           searchQuery={searchQuery}

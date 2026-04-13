@@ -23,13 +23,16 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint check
-        run: pnpm exec eslint .
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
 
       - name: Run Tests
-        run: pnpm exec vitest run
+        run: pnpm test
 
       - name: Build
         run: pnpm build
