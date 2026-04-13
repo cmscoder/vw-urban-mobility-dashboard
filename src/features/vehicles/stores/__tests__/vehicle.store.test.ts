@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useVehicleStore } from '../vehicle.store';
+import {
+  DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE,
+  useVehicleStore,
+} from '../vehicle.store';
 import type { VehicleRecord } from '@/features/vehicles/types';
 
 const mockRecords: VehicleRecord[] = [
@@ -108,6 +111,38 @@ describe('vehicle store', () => {
 
       expect(useVehicleStore.getState().vehicles).toHaveLength(2);
     });
+
+    it('throws when country, year, and motor match an existing row', () => {
+      useVehicleStore.getState().seed(mockRecords);
+
+      expect(() =>
+        useVehicleStore.getState().addRecord({
+          country: 'DE',
+          countryName: 'Germany',
+          year: '2022',
+          motorEnergy: 'ELC',
+          motorEnergyName: 'Electricity',
+          count: 1,
+        })
+      ).toThrow(DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE);
+
+      expect(useVehicleStore.getState().vehicles).toHaveLength(2);
+    });
+
+    it('treats country code case-insensitively for duplicates', () => {
+      useVehicleStore.getState().seed(mockRecords);
+
+      expect(() =>
+        useVehicleStore.getState().addRecord({
+          country: 'de',
+          countryName: 'Germany',
+          year: '2022',
+          motorEnergy: 'ELC',
+          motorEnergyName: 'Electricity',
+          count: 1,
+        })
+      ).toThrow(DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE);
+    });
   });
 
   describe('updateRecord', () => {
@@ -162,6 +197,41 @@ describe('vehicle store', () => {
       expect(france?.count).toBe(2000);
     });
 
+    it('throws when id does not exist', () => {
+      useVehicleStore.getState().seed(mockRecords);
+
+      expect(() =>
+        useVehicleStore.getState().updateRecord('missing-id', {
+          country: 'DE',
+          countryName: 'Germany',
+          year: '2022',
+          motorEnergy: 'ELC',
+          motorEnergyName: 'Electricity',
+          count: 1,
+        })
+      ).toThrow('Record not found');
+    });
+
+    it('throws when update would duplicate another row natural key', () => {
+      useVehicleStore.getState().seed(mockRecords);
+
+      expect(() =>
+        useVehicleStore.getState().updateRecord('FR-ELC-2022', {
+          country: 'DE',
+          countryName: 'Germany',
+          year: '2022',
+          motorEnergy: 'ELC',
+          motorEnergyName: 'Electricity',
+          count: 2000,
+        })
+      ).toThrow(DUPLICATE_VEHICLE_NATURAL_KEY_MESSAGE);
+
+      const fr = useVehicleStore
+        .getState()
+        .vehicles.find((r) => r.id === 'FR-ELC-2022');
+      expect(fr?.country).toBe('FR');
+    });
+
     it('throws when update sets year to the future', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date('2026-04-01T12:00:00Z'));
@@ -186,6 +256,29 @@ describe('vehicle store', () => {
       } finally {
         vi.useRealTimers();
       }
+    });
+  });
+
+  describe('resetData', () => {
+    it('clears vehicles and isSeeded so seed can run again', () => {
+      useVehicleStore.getState().seed(mockRecords);
+      useVehicleStore.getState().addRecord({
+        country: 'ES',
+        countryName: 'Spain',
+        year: '2023',
+        motorEnergy: 'ELC',
+        motorEnergyName: 'Electricity',
+        count: 1,
+      });
+
+      useVehicleStore.getState().resetData();
+
+      expect(useVehicleStore.getState().vehicles).toEqual([]);
+      expect(useVehicleStore.getState().isSeeded).toBe(false);
+
+      useVehicleStore.getState().seed(mockRecords);
+      expect(useVehicleStore.getState().vehicles).toEqual(mockRecords);
+      expect(useVehicleStore.getState().isSeeded).toBe(true);
     });
   });
 

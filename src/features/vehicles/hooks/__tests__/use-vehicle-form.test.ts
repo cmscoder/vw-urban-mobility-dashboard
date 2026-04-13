@@ -160,6 +160,34 @@ describe('useVehicleForm', () => {
     });
   });
 
+  describe('defaults reference stability', () => {
+    it('does not reset the form when defaults is a new object with the same values', () => {
+      const locked = {
+        country: 'ES',
+        countryName: 'Spain',
+        year: '2024',
+      };
+
+      const { result, rerender } = renderHook(
+        ({ defaults }) => useVehicleForm(true, null, defaults),
+        { initialProps: { defaults: { ...locked } } }
+      );
+
+      expect(result.current.form.country).toBe('ES');
+      expect(result.current.form.year).toBe('2024');
+
+      act(() => {
+        result.current.updateCount('42');
+      });
+      expect(result.current.form.count).toBe(42);
+
+      rerender({ defaults: { ...locked } });
+
+      expect(result.current.form.count).toBe(42);
+      expect(result.current.form.country).toBe('ES');
+    });
+  });
+
   describe('year validation', () => {
     beforeEach(() => {
       vi.useFakeTimers();

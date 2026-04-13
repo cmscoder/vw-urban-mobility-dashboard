@@ -16,7 +16,11 @@ export { useVehicleStore } from './stores/vehicle.store';
 // Utils
 export { aggregateByCountryYear } from './utils/aggregate-vehicles';
 export { buildChartData } from './utils/merge-by-motor-energy';
-export { formatCount } from './utils/format';
+export {
+  formatCount,
+  formatMotorTypeCountLabel,
+  viewDetailsAriaLabel,
+} from './utils/format';
 
 // Types
 export type {

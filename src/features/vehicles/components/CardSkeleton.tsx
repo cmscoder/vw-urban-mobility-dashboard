@@ -12,8 +12,8 @@ export function CardSkeleton({
 }: CardSkeletonProps) {
   return (
     <>
-      {Array.from({ length: count }).map((_, i) => (
-        <Card key={i}>
+      {[...Array(count).keys()].map((cardIndex) => (
+        <Card key={cardIndex}>
           <CardContent className="space-y-3 p-4">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -22,9 +22,14 @@ export function CardSkeleton({
               </div>
               <Skeleton className="h-8 w-16" />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {Array.from({ length: detailsColumnsCount }).map((_, j) => (
-                <Skeleton key={j} className="h-8 w-full" />
+            <div
+              className="grid gap-2"
+              style={{
+                gridTemplateColumns: `repeat(${detailsColumnsCount}, minmax(0, 1fr))`,
+              }}
+            >
+              {[...Array(detailsColumnsCount).keys()].map((columnIndex) => (
+                <Skeleton key={columnIndex} className="h-8 w-full" />
               ))}
             </div>
           </CardContent>

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -16,6 +16,7 @@ function App() {
             path="/vehicles/:country/:year"
             element={<VehicleDetailPage />}
           />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>

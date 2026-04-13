@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,20 +39,26 @@ export default function VehicleDetailPage() {
   const { country, year } = useParams<{ country: string; year: string }>();
   const navigate = useNavigate();
 
+  const countryParam = (country ?? '').toUpperCase();
+  const yearParam = year ?? '';
+
   const vehicles = useVehicleStore((state) => state.vehicles);
   const addRecord = useVehicleStore((state) => state.addRecord);
   const updateRecord = useVehicleStore((state) => state.updateRecord);
   const deleteRecord = useVehicleStore((state) => state.deleteRecord);
 
   const records = useMemo(
-    () => vehicles.filter((v) => v.country === country && v.year === year),
-    [vehicles, country, year]
+    () =>
+      vehicles.filter(
+        (v) => v.country.toUpperCase() === countryParam && v.year === yearParam
+      ),
+    [vehicles, countryParam, yearParam]
   );
 
-  const countryName = records[0]?.countryName ?? country;
+  const countryName = records[0]?.countryName ?? countryParam;
   const countryFlag = useMemo(
-    () => (country ? getCountryFlag(country) : ''),
-    [country]
+    () => (countryParam ? getCountryFlag(countryParam) : ''),
+    [countryParam]
   );
   const totalCount = records.reduce((sum, r) => sum + (r.count ?? 0), 0);
 
@@ -71,6 +77,7 @@ export default function VehicleDetailPage() {
     () => buildChartData(showLocal ? localRecords : eurostatRecords),
     [showLocal, localRecords, eurostatRecords]
   );
+  const chartDataIsEmpty = chartData.length === 0;
 
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<VehicleRecord | null>(
@@ -82,49 +89,58 @@ export default function VehicleDetailPage() {
 
   const lockedFields = useMemo(
     () => ({
-      country: country ?? '',
+      country: countryParam,
       countryName,
-      year: year ?? '',
+      year: yearParam,
     }),
-    [country, countryName, year]
+    [countryParam, countryName, yearParam]
   );
 
-  function handleCreate(data: VehicleFormData) {
-    try {
-      addRecord(data);
-      toast.success('Record added successfully.');
-    } catch {
-      toast.error('Failed to add record.');
-    }
-  }
+  const handleCreate = useCallback(
+    (data: VehicleFormData) => {
+      try {
+        addRecord(data);
+        toast.success('Record added successfully.');
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Failed to add record.');
+      }
+    },
+    [addRecord]
+  );
 
-  function handleEdit(data: VehicleFormData) {
-    if (editingRecord) {
+  const handleEdit = useCallback(
+    (data: VehicleFormData) => {
+      if (!editingRecord) return;
       try {
         updateRecord(editingRecord.id, data);
         setEditingRecord(null);
         toast.success('Record updated successfully.');
-      } catch {
-        toast.error('Failed to update record.');
+      } catch (e) {
+        toast.error(
+          e instanceof Error ? e.message : 'Failed to update record.'
+        );
       }
-    }
-  }
+    },
+    [editingRecord, updateRecord]
+  );
 
-  function handleConfirmDelete() {
-    if (deletingRecord) {
-      try {
-        deleteRecord(deletingRecord.id);
-        setDeletingRecord(null);
-        toast.success('Record deleted successfully.');
-      } catch {
-        toast.error('Failed to delete record.');
-      }
-
-      if (records.length <= 1) {
+  const handleConfirmDelete = useCallback(() => {
+    if (!deletingRecord) return;
+    try {
+      deleteRecord(deletingRecord.id);
+      setDeletingRecord(null);
+      toast.success('Record deleted successfully.');
+      const nextVehicles = useVehicleStore.getState().vehicles;
+      const stillHasGroup = nextVehicles.some(
+        (v) => v.country.toUpperCase() === countryParam && v.year === yearParam
+      );
+      if (!stillHasGroup) {
         navigate('/');
       }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete record.');
     }
-  }
+  }, [countryParam, yearParam, deleteRecord, deletingRecord, navigate]);
 
   if (records.length === 0) {
     return (
@@ -167,7 +183,7 @@ export default function VehicleDetailPage() {
                 <span>{countryName}</span>
               </h2>
               <p className="text-sm text-muted-foreground">
-                {year} — {records.length} motor{' '}
+                {yearParam} — {records.length} motor{' '}
                 {records.length === 1 ? 'type' : 'types'} —{' '}
                 {formatCount(totalCount)} total vehicles
               </p>
@@ -196,13 +212,13 @@ export default function VehicleDetailPage() {
                 ) : null}
                 <span>{countryName}</span>
               </p>
-              <p className="text-xs text-muted-foreground">{country}</p>
+              <p className="text-xs text-muted-foreground">{countryParam}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Year</p>
-              <p className="text-lg font-semibold">{year}</p>
+              <p className="text-lg font-semibold">{yearParam}</p>
             </CardContent>
           </Card>
           <Card className="col-span-2 sm:col-span-1">
@@ -244,6 +260,7 @@ export default function VehicleDetailPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <MotorEnergyBarChart
               data={chartData}
+              isEmpty={chartDataIsEmpty}
               title={
                 showLocal
                   ? 'Registrations — Local Data'
@@ -252,6 +269,7 @@ export default function VehicleDetailPage() {
             />
             <MotorEnergyPieChart
               data={chartData}
+              isEmpty={chartDataIsEmpty}
               title={
                 showLocal
                   ? 'Distribution — Local Data'
@@ -386,7 +404,7 @@ export default function VehicleDetailPage() {
             <AlertDialogDescription>
               This will permanently remove{' '}
               <strong>{deletingRecord?.motorEnergyName}</strong> for{' '}
-              {countryName} ({year}). This action cannot be undone.
+              {countryName} ({yearParam}). This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -7,8 +7,11 @@ import type {
  * Groups vehicle records by country and year, summing registration counts.
  * Used by the dashboard to produce a scannable master view.
  *
+ * Grouping key uses **uppercase** ISO country codes so `de` and `DE` land in the same bucket.
+ * `countryName` comes from the **first** record in each group.
+ *
  * @param records - Flat list of individual vehicle records.
- * @returns One {@link AggregatedRecord} per unique country × year combination.
+ * @returns One `AggregatedRecord` per unique country × year combination (insertion order).
  */
 export function aggregateByCountryYear(
   records: VehicleRecord[]
@@ -16,7 +19,8 @@ export function aggregateByCountryYear(
   const groups = new Map<string, AggregatedRecord>();
 
   for (const record of records) {
-    const key = `${record.country}-${record.year}`;
+    const country = record.country.toUpperCase();
+    const key = `${country}-${record.year}`;
     const existing = groups.get(key);
 
     if (existing) {
@@ -25,7 +29,7 @@ export function aggregateByCountryYear(
     } else {
       groups.set(key, {
         id: key,
-        country: record.country,
+        country,
         countryName: record.countryName,
         year: record.year,
         totalCount: record.count ?? 0,

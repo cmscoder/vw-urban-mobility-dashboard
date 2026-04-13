@@ -1,11 +1,8 @@
+import type { PropsWithChildren } from 'react';
 import { Link } from 'react-router-dom';
 import { Car } from 'lucide-react';
 
-interface HeaderProps {
-  children?: React.ReactNode;
-}
-
-export function Header({ children }: HeaderProps) {
+export function Header({ children }: PropsWithChildren) {
   return (
     <header className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <Link to="/" className="flex items-center gap-3 hover:opacity-80">

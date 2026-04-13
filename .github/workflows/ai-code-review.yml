@@ -2,11 +2,16 @@ name: 🤖 AI Code Reviewer
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: gemini-review-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   review:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: write
@@ -22,11 +27,27 @@ jobs:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           model: 'gemini-2.5-flash'
           context-lines: '20'
+          review-title: '🔎 Gemini code review (VW Urban Mobility Dashboard)'
+          max-output: '8192'
           prompt: |
-            You are a Frontend Architect at Volkswagen Digital:HUB.
-            Review this Pull Request focusing on:
-            1. Clean Architecture & SOLID principles.
-            2. React 19 and TypeScript best practices.
-            3. Potential bugs or performance issues.
-            4. Suggest improvements in a professional, constructive, and concise tone.
-            If the code looks perfect, give a brief 'LGTM' (Looks Good To Me) and highlight what you liked.
+            You are helping review a **VW Urban Mobility Dashboard** pull request — a React + TypeScript app for Eurostat vehicle data.
+
+            **Likely stack in this repo:** Vite, React 19, TypeScript (strict), React Router, TanStack Query & Table, Zustand (persist), Shadcn/Radix, Recharts, Vitest + Testing Library. Adjust if the diff shows something different.
+
+            **Scope:** Comment on **this PR’s changes only**. Do not propose a full rewrite. Skip pure formatting/style that ESLint/Prettier already enforces, unless it masks a real issue.
+
+            Please look for:
+            - Clear structure (components vs hooks, avoid unnecessary duplication).
+            - Sound React and TypeScript usage (hooks, types, loading/error paths where relevant).
+            - Obvious bugs, edge cases, or avoidable performance issues.
+            - Basic accessibility where UI changed (labels, focus, dialogs).
+            - Secrets in code or unsafe handling of untrusted data.
+
+            **Use this structure in your PR comment:**
+            ### Summary
+            ### Findings
+            ### Suggestions
+            ### Notes
+            If the change looks good, say so briefly in **Notes** and optionally add one small idea for later — keep the overall comment friendly and proportionate to the size of the diff.
+
+            Tone: constructive, concise, and practical (mid-level team review, not a staff interview).

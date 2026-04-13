@@ -38,7 +38,7 @@ As part of the **AI-First Engineering** approach, this project's infrastructure 
 
 - **Boilerplate and configuration:** ESLint flat config, Tailwind setup, Vite config, CI/CD pipelines — AI generated 80% of infrastructure in minutes instead of hours.
 - **Multi-file refactoring:** The micro-frontend restructuring (moving 30+ files and updating all imports) was completed in one pass with AI assistance. Manually, this would have been error-prone and tedious.
-- **Test generation:** AI produced well-structured test suites (111 tests) that I then reviewed and refined. This saved significant time while maintaining coverage quality.
+- **Test generation:** AI produced well-structured test suites (currently **167** Vitest cases) that I then reviewed and refined. This saved significant time while maintaining coverage quality.
 - **JSDoc documentation:** AI generated accurate JSDoc for all public APIs, which I reviewed and edited for precision.
 
 **Where AI slowed me down or required intervention:**
@@ -87,7 +87,7 @@ A professional **GitHub Actions** pipeline acts as a quality gate for every cont
 - **Dependency Verification:** Uses `pnpm` for deterministic builds.
 - **Linting:** Enforces strict code style via **ESLint 9 (Flat Config)** and **Prettier**.
 - **Automated Testing:** Runs **Vitest** (Unit + Environment validation) on every push to `main` or `feat/*` branches.
-- **Production Build Verification:** Runs `tsc -b && vite build` to ensure TypeScript compilation and bundle integrity. During the final review phase, I identified that the pipeline was missing this step — a broken build could have slipped through CI undetected. Adding it ensures no PR is merged without a successful production build.
+- **Production Build Verification:** CI runs `pnpm typecheck` (`tsc -b`) then `pnpm build` (`tsc -b && vite build`) so TypeScript is validated in a dedicated step and again before bundling. No PR is merged without a successful production build.
 - **AI Code Review:** Every pull request is automatically reviewed by **Google Gemini** (`gemini-2.5-flash`), configured to flag architectural and performance concerns.
 - **Location:** `.github/workflows/ci.yml` | `.github/workflows/ai-code-review.yml`
 
@@ -98,12 +98,21 @@ A professional **GitHub Actions** pipeline acts as a quality gate for every cont
 - **TypeScript Strict Mode:** `strict: true` is enabled in `tsconfig.app.json`, activating `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, and all other strict flags. This catches null/undefined issues at compile time rather than at runtime.
 - **ESLint 9:** Configured with the modern **Flat Config** system, integrating `typescript-eslint` and `prettier` directly into the linting pipeline.
 - **UI Primitives:** **Shadcn UI** has been initialized as the base component library to ensure accessibility (Radix UI) and design consistency.
-- **JSDoc API Documentation:** All public-facing exports (hooks, utilities, store, types, and reusable components) are documented with JSDoc. This includes parameter descriptions, return types, and cross-references (e.g. `{@link AggregatedRecord}`). Key documented modules:
+- **JSDoc API Documentation:** Public-facing exports (hooks, utilities, store, types, and reusable components) are documented with JSDoc where it helps maintainability—parameter and return descriptions, and `{@link ...}` cross-references where they add clarity (plain prose is used elsewhere). Key documented modules:
   - **Reusable components:** `SearchInput`, `FormTextField`, `ErrorBoundary`
   - **Custom hooks:** `useVehicles`, `useVehicleTable`, `useVehicleForm`
   - **Utilities:** `aggregateByCountryYear`, `buildChartData`, `formatCount`
   - **Store:** `useVehicleStore` (Zustand with persistence)
   - **Types:** `VehicleRecord`, `AggregatedRecord`, `VehicleFormData`
+
+### Notable implementation details (post-refactor)
+
+- **TanStack Query:** Eurostat requests use a **stable query key** (`vehiclesQueryKey` / `stableEurostatParamsKey` in `constants/vehicles-query.ts`) so identical params do not churn the cache. `main.tsx` configures `QueryClient` with **`refetchOnWindowFocus: false`** for predictable dashboard behavior.
+- **Vehicle form:** `useVehicleForm` resets when the dialog opens using **`stableVehicleRecordKey`** and **`stablePartialVehicleFormKey`** so inline `defaults` objects with the same fields do not wipe in-progress edits. Country selection uses a **Command + Popover combobox** (`CountryCombobox`) backed by `constants/countries.ts`.
+- **Zustand store:** `updateRecord` guards missing ids and **duplicate natural keys** (`country` + `year` + `motorEnergyName`); consumers surface `Error.message` (e.g. toasts on dashboard/detail pages).
+- **Charts:** `buildChartData` **merges rows by `motorEnergyName`** (`utils/merge-by-motor-energy.ts`) with unit tests; aggregation and table filter options **normalize country codes to uppercase** for consistent grouping.
+- **Routing / bootstrap:** `App.tsx` sends unknown paths to **`/`**; `main.tsx` asserts **`#root`** before `createRoot`. **`test-setup.ts`** stubs **`ResizeObserver`** for Recharts under jsdom.
+- **Linting:** Shadcn `ui/` primitives disable **`react-refresh/only-export-components`** in `eslint.config.js` (variant exports are intentional). Two hook sites use **documented `eslint-disable-next-line`** for intentional dependency lists (`useVehicleForm`, `useVehicleTable`).
 
 ---
 
@@ -230,14 +239,14 @@ pnpm install
 
 ### 💻 Development commands
 
-| Command            | Description                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------------- |
-| `pnpm dev`         | Start the **Vite** dev server with HMR (default: [http://localhost:5173](http://localhost:5173)). |
-| `pnpm build`       | **Typecheck** (`tsc -b`) then **production bundle** (`vite build`). Same steps as CI.             |
-| `pnpm preview`     | Serve the **production build** locally (run `pnpm build` first).                                  |
-| `pnpm test`        | Run the **Vitest** suite once (`vitest run`).                                                     |
-| `pnpm lint`        | Run **ESLint** on the repo (`eslint .`). For auto-fixes: `pnpm exec eslint --fix .`               |
-| `pnpm exec tsc -b` | **Typecheck only** (faster than a full build when you only need the compiler).                    |
+| Command          | Description                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `pnpm dev`       | Start the **Vite** dev server with HMR (default: [http://localhost:5173](http://localhost:5173)). |
+| `pnpm typecheck` | **TypeScript** project build (`tsc -b`). CI runs this as its own step before tests and build.     |
+| `pnpm build`     | **Typecheck** (`tsc -b`) then **production bundle** (`vite build`).                               |
+| `pnpm preview`   | Serve the **production build** locally (run `pnpm build` first).                                  |
+| `pnpm test`      | Run the **Vitest** suite once (`vitest run`).                                                     |
+| `pnpm lint`      | Run **ESLint** on the repo (`eslint .`). For auto-fixes: `pnpm exec eslint . --fix`               |
 
 **Minimal flow after clone:**
 
@@ -249,7 +258,7 @@ pnpm dev
 **Before a commit or PR** (matches local expectations with CI):
 
 ```bash
-pnpm exec tsc -b --force
+pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build

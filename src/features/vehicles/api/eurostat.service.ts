@@ -37,7 +37,9 @@ export async function fetchVehicleData(
 }
 
 /**
- * Reverses a category index map (code → position) to (position → code).
+ * JSON-stat `category.index` maps each category code to its axis position (0…n-1).
+ * When we decode a flat value key with strides we only get those integer positions;
+ * this builds the inverse map so we can resolve position → code for geo, time, and mot_nrg.
  */
 function reverseIndex(index: Record<string, number>): Record<number, string> {
   return Object.fromEntries(
@@ -69,8 +71,8 @@ export function transformResponse(data: EurostatResponse): VehicleRecord[] {
   const timeIdx = dimIds.indexOf('time');
   const motNrgIdx = dimIds.indexOf('mot_nrg');
 
-  const strides = dimIds.map((_, i) =>
-    dimSizes.slice(i + 1).reduce((a, b) => a * b, 1)
+  const strides = dimIds.map((_dimId, dimensionIndex) =>
+    dimSizes.slice(dimensionIndex + 1).reduce((a, b) => a * b, 1)
   );
 
   return Object.entries(value).map(([flatKey, count]) => {
@@ -88,10 +90,10 @@ export function transformResponse(data: EurostatResponse): VehicleRecord[] {
     return {
       id: `${geo}-${motNrg}-${time}`,
       country: geo,
-      countryName: geoDim.category.label[geo] ?? geo,
+      countryName: geoDim.category.label?.[geo] ?? geo,
       year: time,
       motorEnergy: motNrg,
-      motorEnergyName: motNrgDim.category.label[motNrg] ?? motNrg,
+      motorEnergyName: motNrgDim.category.label?.[motNrg] ?? motNrg,
       count,
       source: 'eurostat' as const,
     };

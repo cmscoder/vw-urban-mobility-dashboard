@@ -9,25 +9,25 @@ export interface ChartDataEntry {
 }
 
 /**
- * Transforms vehicle records into chart-ready data entries.
- * Assigns a consistent color per motor energy type.
+ * Merges vehicle rows by `motorEnergyName`, sums counts, assigns a stable color per
+ * motor type (order of first appearance in `records`), then sorts descending by count.
  *
  * @param records - Vehicle records for a single country × year.
- * @returns Sorted array (descending by count) of {@link ChartDataEntry}.
  */
 export function buildChartData(records: VehicleRecord[]): ChartDataEntry[] {
-  const motorTypes = [...new Set(records.map((r) => r.motorEnergyName))];
+  const totals = records.reduce((map, r) => {
+    const name = r.motorEnergyName;
+    map.set(name, (map.get(name) ?? 0) + (r.count ?? 0));
+    return map;
+  }, new Map<string, number>());
 
-  return records
-    .map((r) => {
-      const colorIndex = motorTypes.indexOf(r.motorEnergyName);
-      const baseColor = CHART_COLORS[colorIndex % CHART_COLORS.length];
+  const orderedNames = [...new Set(records.map((r) => r.motorEnergyName))];
 
-      return {
-        name: r.motorEnergyName,
-        count: r.count ?? 0,
-        fill: baseColor,
-      };
-    })
+  return orderedNames
+    .map((name, colorIndex) => ({
+      name,
+      count: totals.get(name) ?? 0,
+      fill: CHART_COLORS[colorIndex % CHART_COLORS.length],
+    }))
     .sort((a, b) => b.count - a.count);
 }

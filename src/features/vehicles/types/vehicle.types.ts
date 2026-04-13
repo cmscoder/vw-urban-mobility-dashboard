@@ -1,19 +1,26 @@
-/** Single vehicle registration record from Eurostat or created locally. */
+/** Single vehicle registration row from Eurostat or created locally. */
 export interface VehicleRecord {
   id: string;
+  /** ISO 3166-1 alpha-2 (uppercase in app data). */
   country: string;
   countryName: string;
+  /** Four-digit calendar year as string. */
   year: string;
+  /** Eurostat motor-energy code (e.g. `ELC`). */
   motorEnergy: string;
   motorEnergyName: string;
+  /** `null` when the user cleared the count field in the form. */
   count: number | null;
   source: 'eurostat' | 'local';
 }
 
-/** Form payload for creating or editing a vehicle record (no id or source). */
+/** Payload for create/edit dialogs (`id` and `source` are owned by the store). */
 export type VehicleFormData = Omit<VehicleRecord, 'id' | 'source'>;
 
-/** Dashboard-level summary: all motor energies for a country × year group. */
+/**
+ * One dashboard row: all motor-energy registrations aggregated for a country × year.
+ * `recordCount` is how many underlying rows exist; `totalCount` is the sum of their counts.
+ */
 export interface AggregatedRecord {
   id: string;
   country: string;
@@ -23,6 +30,10 @@ export interface AggregatedRecord {
   recordCount: number;
 }
 
+/**
+ * Filter model for the table and filter UI. Use `'all'` on a field to mean “no filter”
+ * (see `EMPTY_FILTERS`). Other values are column-specific (country code, year string, etc.).
+ */
 export interface VehicleFilters {
   country: string;
   year: string;
@@ -30,6 +41,12 @@ export interface VehicleFilters {
   source: string;
 }
 
+export type VehicleFilterChangeHandler = (
+  field: keyof VehicleFilters,
+  value: string
+) => void;
+
+/** Option for selects/comboboxes (`value` is stored; `label` is shown). */
 export interface FilterOption {
   value: string;
   label: string;

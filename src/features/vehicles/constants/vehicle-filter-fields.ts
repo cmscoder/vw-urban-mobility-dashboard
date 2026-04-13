@@ -10,6 +10,12 @@ export interface VehicleFilterFieldConfig {
   options: readonly FilterOption[];
 }
 
+/** Country + year only (table header row and mobile filter drawer). */
+export const VEHICLE_GEO_YEAR_FILTER_FIELDS: (keyof VehicleFilters)[] = [
+  'country',
+  'year',
+];
+
 type FilterVariant = 'desktop' | 'mobile';
 
 export function buildVehicleFilterFields(

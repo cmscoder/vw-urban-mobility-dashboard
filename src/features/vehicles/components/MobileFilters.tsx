@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
+
 import {
   Drawer,
   DrawerClose,
@@ -19,28 +20,32 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { buildVehicleFilterFields } from '@/features/vehicles/constants';
-import type { VehicleFilters, FilterOption } from '@/features/vehicles/types';
+import { Label } from '@/components/ui/label';
+
+import {
+  buildVehicleFilterFields,
+  VEHICLE_GEO_YEAR_FILTER_FIELDS,
+  type VehicleFilterFieldConfig,
+} from '@/features/vehicles/constants';
+import type {
+  FilterOption,
+  VehicleFilters,
+  VehicleFilterChangeHandler,
+} from '@/features/vehicles/types';
 
 interface MobileFiltersProps {
   filters: VehicleFilters;
   countryOptions: FilterOption[];
   yearOptions: FilterOption[];
   activeFilterCount: number;
-  onFilterChange: (field: keyof VehicleFilters, value: string) => void;
+  onFilterChange: VehicleFilterChangeHandler;
   onFiltersClear: () => void;
 }
 
 interface MobileFilterFieldProps {
-  config: {
-    field: keyof VehicleFilters;
-    label: string;
-    ariaLabel: string;
-    allLabel: string;
-    options: readonly FilterOption[];
-  };
+  config: VehicleFilterFieldConfig;
   value: string;
-  onChange: (field: keyof VehicleFilters, value: string) => void;
+  onChange: VehicleFilterChangeHandler;
 }
 
 function MobileFilterField({
@@ -48,11 +53,15 @@ function MobileFilterField({
   value,
   onChange,
 }: MobileFilterFieldProps) {
+  const triggerId = useId();
+
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{config.label}</label>
+      <Label htmlFor={triggerId} className="text-sm font-medium">
+        {config.label}
+      </Label>
       <Select value={value} onValueChange={(v) => onChange(config.field, v)}>
-        <SelectTrigger aria-label={config.ariaLabel}>
+        <SelectTrigger id={triggerId} aria-label={config.ariaLabel}>
           <SelectValue placeholder={config.allLabel} />
         </SelectTrigger>
         <SelectContent>
@@ -77,11 +86,14 @@ export function MobileFilters({
   onFiltersClear,
 }: MobileFiltersProps) {
   const [open, setOpen] = useState(false);
-  const filterFields = buildVehicleFilterFields(
-    countryOptions,
-    yearOptions,
-    'mobile'
-  ).filter((f) => f.field === 'country' || f.field === 'year');
+
+  const filterFields = useMemo(
+    () =>
+      buildVehicleFilterFields(countryOptions, yearOptions, 'mobile').filter(
+        (f) => VEHICLE_GEO_YEAR_FILTER_FIELDS.includes(f.field)
+      ),
+    [countryOptions, yearOptions]
+  );
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>

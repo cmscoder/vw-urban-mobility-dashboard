@@ -1,8 +1,13 @@
 import { Eye } from 'lucide-react';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatCount } from '@/features/vehicles/utils';
+import {
+  formatCount,
+  formatMotorTypeCountLabel,
+  viewDetailsAriaLabel,
+} from '@/features/vehicles/utils';
 import type { AggregatedRecord } from '@/features/vehicles/types';
 
 interface VehicleCardProps {
@@ -20,8 +25,7 @@ export function VehicleCard({ record, onViewDetails }: VehicleCardProps) {
             <p className="text-xs text-muted-foreground">{record.country}</p>
           </div>
           <Badge variant="secondary">
-            {record.recordCount} motor{' '}
-            {record.recordCount === 1 ? 'type' : 'types'}
+            {formatMotorTypeCountLabel(record.recordCount)}
           </Badge>
         </div>
 
@@ -37,11 +41,12 @@ export function VehicleCard({ record, onViewDetails }: VehicleCardProps) {
         </div>
 
         <Button
+          type="button"
           variant="outline"
           size="sm"
           className="mt-3 w-full gap-1.5"
           onClick={() => onViewDetails(record)}
-          aria-label={`View details for ${record.countryName} ${record.year}`}
+          aria-label={viewDetailsAriaLabel(record)}
         >
           <Eye className="h-4 w-4" />
           View Details

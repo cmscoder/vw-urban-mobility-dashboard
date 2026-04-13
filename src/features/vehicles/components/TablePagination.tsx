@@ -1,10 +1,13 @@
+import { useId } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -12,27 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PAGE_SIZE_OPTIONS } from '@/features/vehicles/constants';
 
-export interface PaginationInfo {
-  pageIndex: number;
-  pageSize: number;
-  pageCount: number;
-  filteredTotal: number;
-  canPreviousPage: boolean;
-  canNextPage: boolean;
-  goToFirstPage: () => void;
-  goToPreviousPage: () => void;
-  goToNextPage: () => void;
-  goToLastPage: () => void;
-  setPageSize: (size: number) => void;
-}
+import { PAGE_SIZE_OPTIONS } from '@/features/vehicles/constants';
+import type { PaginationInfo } from '@/features/vehicles/types';
 
 interface TablePaginationProps {
   pagination: PaginationInfo;
 }
 
 export function TablePagination({ pagination }: TablePaginationProps) {
+  const pageSizeSelectId = useId();
   const {
     pageIndex,
     pageSize,
@@ -53,12 +45,12 @@ export function TablePagination({ pagination }: TablePaginationProps) {
     <div className="flex items-center justify-between px-2 py-4">
       {/* Page size selector — desktop only */}
       <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
-        <span>Rows per page</span>
+        <Label htmlFor={pageSizeSelectId}>Rows per page</Label>
         <Select
           value={String(pageSize)}
           onValueChange={(v) => setPageSize(Number(v))}
         >
-          <SelectTrigger className="h-8 w-[70px]" aria-label="Rows per page">
+          <SelectTrigger id={pageSizeSelectId} className="h-8 w-[70px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
